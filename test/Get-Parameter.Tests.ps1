@@ -10,4 +10,9 @@ Describe 'Get-Parameter tests' {
 
         $results | ShouldAny { $_.Name -eq 'asyncResult' }
     }
+
+    It 'returns nothing without input' {
+        Get-Parameter | Should -BeNullOrEmpty
+        $null | Get-Parameter | Should -BeNullOrEmpty
+    }
 }

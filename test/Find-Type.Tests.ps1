@@ -35,6 +35,22 @@ Describe 'Find-Type tests' {
     It 'matches by namespace' {
         Find-Type -Namespace System.Timers | ShouldAll { $_.Namespace -eq 'System.Timers' }
     }
+    It 'matches by full name' {
+        Find-Type -FullName System.Management.Automation.ProxyCommand |
+            Should -Be ([System.Management.Automation.ProxyCommand])
+    }
+    It 'matches by name with regex' {
+        Find-Type "Runspace(Factory|ConnectionInfo)" -RegularExpression |
+            Should -Be ([runspacefactory], [System.Management.Automation.Runspaces.RunspaceConnectionInfo])
+    }
+    It 'matches by namespace with regex' {
+        Find-Type MethodAttributes -Namespace 'System\.(?!Reflection).+' -RegularExpression |
+            Should -Be ([System.Management.Automation.Language.MethodAttributes])
+    }
+    It 'matches by full name with regex' {
+        Find-Type -FullName 'System\.(?!Threading)\w+\.Timer$' -RegularExpression |
+            Should -Be ([System.Timers.Timer])
+    }
     It 'matches by base class' {
         $results = Find-Type -InheritsType System.Management.Automation.Language.Ast
 
