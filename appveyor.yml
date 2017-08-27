@@ -1,0 +1,29 @@
+version: 1.0.0.{build}
+image: Visual Studio 2017
+environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+install:
+- ps: >-
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+
+    Install-Module Pester -RequiredVersion 4.0.6 -Scope CurrentUser -Force -SkipPublisherCheck
+
+    Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force
+
+    Install-Module platyPS -RequiredVersion 0.8.1 -Scope CurrentUser -Force
+build_script:
+- ps: >-
+    Invoke-Build -Task Prerelease -Configuration Release -GenerateCodeCoverage
+
+    $resultsFile = "$PWD\testresults\pester.xml"
+
+    $passed = (Test-Path $resultsFile) -and 0 -eq ([int]([xml](Get-Content $resultsFile -Raw)).'test-results'.failures)
+
+
+    if ($passed) {
+        [System.Net.WebClient]::new().UploadFile("https://ci.appveyor.com/api/testresults/nunit/${env:APPVEYOR_JOB_ID}", $resultsFile)
+    } else {
+        $Error | Format-List * -Force
+        exit 1;
+    }
