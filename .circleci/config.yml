@@ -7,7 +7,7 @@ jobs:
         steps:
             - checkout
             - run:
-                name: Install modules
+                name: Run build script
                 command: 'powershell -File ./tools/InvokeCircleCI.ps1'
             - store_artifacts:
                 path: ./testresults/pester.xml

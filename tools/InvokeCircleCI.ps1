@@ -1,10 +1,12 @@
-Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 Install-Module Pester -RequiredVersion 4.0.6 -Scope CurrentUser -Force
 Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force
 Install-Module platyPS -RequiredVersion 0.8.1 -Scope CurrentUser -Force
 
-Import-Module Pester -ErrorAction Ignore
+Import-Module Pester 2> $null
 Import-Module InvokeBuild, platyPS
+
+$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
+$env:DOTNET_CLI_TELEMETRY_OPTOUT = 'true'
 
 Invoke-Build -File $PSScriptRoot/../ClassExplorer.build.ps1 -Configuration Release -Task Prerelease
 
