@@ -7,9 +7,9 @@ By participating, you are expected to uphold this code. Please report unacceptab
 
 ## Build Status
 
-|AppVeyor (Windows)|CircleCI (Linux)|
-|---|---|
-|[![Build status](https://ci.appveyor.com/api/projects/status/enn6rrrq3ds5ebhr/branch/master?svg=true)](https://ci.appveyor.com/project/SeeminglyScience/classexplorer/branch/master)|[![CircleCI](https://circleci.com/gh/SeeminglyScience/ClassExplorer.svg?style=svg)](https://circleci.com/gh/SeeminglyScience/ClassExplorer)|
+|AppVeyor (Windows)|CircleCI (Linux)|CodeCov|
+|---|---|---|
+|[![Build status](https://ci.appveyor.com/api/projects/status/enn6rrrq3ds5ebhr/branch/master?svg=true)](https://ci.appveyor.com/project/SeeminglyScience/classexplorer/branch/master)|[![CircleCI](https://circleci.com/gh/SeeminglyScience/ClassExplorer.svg?style=svg)](https://circleci.com/gh/SeeminglyScience/ClassExplorer)|[![codecov](https://codecov.io/gh/SeeminglyScience/ClassExplorer/branch/master/graph/badge.svg)](https://codecov.io/gh/SeeminglyScience/ClassExplorer)|
 
 ## Features
 

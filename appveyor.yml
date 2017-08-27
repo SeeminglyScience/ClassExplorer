@@ -12,6 +12,8 @@ install:
     Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force
 
     Install-Module platyPS -RequiredVersion 0.8.1 -Scope CurrentUser -Force
+
+    choco install codecov --no-progress
 build_script:
 - ps: >-
     Invoke-Build -Task Prerelease -Configuration Release -GenerateCodeCoverage
@@ -23,6 +25,7 @@ build_script:
 
     if ($passed) {
         [System.Net.WebClient]::new().UploadFile("https://ci.appveyor.com/api/testresults/nunit/${env:APPVEYOR_JOB_ID}", $resultsFile)
+        codecov -f "$PWD\testresults\opencover.xml"
     } else {
         $Error | Format-List * -Force
         exit 1;
