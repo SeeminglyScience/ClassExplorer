@@ -16,7 +16,7 @@ build_script:
 - ps: >-
     Invoke-Build -Task Prerelease -Configuration Release -GenerateCodeCoverage
 
-    $resultsFile = "$PSScriptRoot\testresults\pester.xml"
+    $resultsFile = "$PWD\testresults\pester.xml"
 
     $passed = (Test-Path $resultsFile) -and 0 -eq ([int]([xml](Get-Content $resultsFile -Raw)).'test-results'.failures)
 
