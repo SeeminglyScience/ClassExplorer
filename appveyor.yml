@@ -13,7 +13,7 @@ install:
 
     Install-Module platyPS -RequiredVersion 0.8.1 -Scope CurrentUser -Force
 
-    choco install codecov
+    choco install codecov --no-progress
 build_script:
 - ps: >-
     Invoke-Build -Task Prerelease -Configuration Release -GenerateCodeCoverage
