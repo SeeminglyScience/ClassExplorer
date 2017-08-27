@@ -44,8 +44,8 @@ Describe 'Find-Type tests' {
             Should -Be ([runspacefactory], [System.Management.Automation.Runspaces.RunspaceConnectionInfo])
     }
     It 'matches by namespace with regex' {
-        Find-Type -Namespace 'System.Xml.(XPath|Schema)' -Name Extensions -RegularExpression |
-            Should -Be ([System.Xml.Schema.Extensions], [System.Xml.XPath.Extensions])
+        Find-Type MethodAttributes -Namespace 'System\.(?!Reflection).+' -RegularExpression |
+            Should -Be ([System.Management.Automation.Language.MethodAttributes])
     }
     It 'matches by full name with regex' {
         Find-Type -FullName 'System\.(?!Threading)\w+\.Timer$' -RegularExpression |
