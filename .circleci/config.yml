@@ -1,0 +1,14 @@
+version: 2.0
+jobs:
+    build:
+        working_directory: ~/classexplorer
+        docker:
+            - image: microsoft/powershell@sha256:6d36c498c1fdbb3ef42acabea1d06b12870e390fd3053993974ebaa6ba507849
+        steps:
+            - checkout
+            - run:
+                name: Run build script
+                command: 'powershell -File ./tools/InvokeCircleCI.ps1'
+            - store_artifacts:
+                path: ./testresults/pester.xml
+                prefix: tests
