@@ -5,6 +5,12 @@ ClassExplorer is a PowerShell module that enables quickly searching the AppDomai
 This project adheres to the Contributor Covenant [code of conduct](https://github.com/SeeminglyScience/ClassExplorer/tree/master/docs/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior to seeminglyscience@gmail.com.
 
+## Build Status
+
+|AppVeyor (Windows)|CircleCI (Linux)|
+|---|---|
+|[![Build status](https://ci.appveyor.com/api/projects/status/enn6rrrq3ds5ebhr/branch/master?svg=true)](https://ci.appveyor.com/project/SeeminglyScience/classexplorer/branch/master)|[![CircleCI](https://circleci.com/gh/SeeminglyScience/ClassExplorer.svg?style=svg)](https://circleci.com/gh/SeeminglyScience/ClassExplorer)|
+
 ## Features
 
 - Quickly find specific classes, methods, properties, etc
