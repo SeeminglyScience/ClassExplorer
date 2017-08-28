@@ -18,6 +18,27 @@ Describe 'Find-Type tests' {
             Get-Item . | Find-Type | Should -Be ([System.IO.DirectoryInfo])
         }
     }
+
+    Context 'Positional parameter binding' {
+        It 'accepts a scriptblock in position 0' {
+            Find-Type { $_.Name -eq 'runspace' } | Should -Be ([runspace])
+        }
+
+        It 'accepts a name in position 0' {
+            Find-Type RunspaceMode | Should -Be ([System.Management.Automation.RunspaceMode])
+        }
+
+        It 'accepts both a name and a script block as named parameters in the same command' {
+            Find-Type -Name Runspace* -FilterScript { $_.IsAbstract } |
+                ShouldAny { $_ -eq [runspace] }
+        }
+
+        It 'accepts namespace at position 1' {
+            Find-Type PowerShell* System.Management.Automation.Runspaces |
+                Should -Be ([System.Management.Automation.Runspaces.PowerShellProcessInstance])
+        }
+    }
+
     It 'can find all types' {
         $result = Find-Type | Measure-Object
 
@@ -30,7 +51,7 @@ Describe 'Find-Type tests' {
         $result | Should -Be ([powershell])
     }
     It 'matches by name' {
-        Find-Type runspace | Should -Be ([runspace])
+        Find-Type RunspaceMode | Should -Be ([System.Management.Automation.RunspaceMode])
     }
     It 'matches by namespace' {
         Find-Type -Namespace System.Timers | ShouldAll { $_.Namespace -eq 'System.Timers' }

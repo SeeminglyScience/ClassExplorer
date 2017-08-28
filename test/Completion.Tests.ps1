@@ -20,6 +20,7 @@ Describe 'Completion tests' {
         $results = complete 'Find-Type -Name Toke'
 
         $results.CompletionMatches | ShouldAll { $_.CompletionText.StartsWith('Token') }
+        $results.CompletionMatches | Should -Not -BeNullOrEmpty
     }
     It 'can complete type full names' {
         $results = complete 'Find-Member -ReturnType Ast'

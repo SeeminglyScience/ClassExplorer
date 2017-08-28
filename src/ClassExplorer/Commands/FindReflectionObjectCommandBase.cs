@@ -17,14 +17,16 @@ namespace ClassExplorer.Commands
         /// <summary>
         /// Gets or sets a ScriptBlock to invoke as a predicate filter.
         /// </summary>
-        [Parameter]
+        [Parameter(Position = 0, ParameterSetName="ByFilter")]
+        [Parameter(ParameterSetName="ByName")]
         [ValidateNotNull]
         public virtual ScriptBlock FilterScript { get; set; }
 
         /// <summary>
         /// Gets or sets the name to match.
         /// </summary>
-        [Parameter(Position = 0)]
+        [Parameter(Position = 0, ParameterSetName="ByName")]
+        [Parameter(ParameterSetName="ByFilter")]
         [SupportsWildcards]
         [ValidateNotNullOrEmpty]
         public virtual string Name { get; set; }

@@ -11,7 +11,7 @@ namespace ClassExplorer.Commands
     /// The Find-Member cmdlet searches the current AppDomain for matching members.
     /// </summary>
     [OutputType(typeof(MemberInfo))]
-    [Cmdlet(VerbsCommon.Find, "Member")]
+    [Cmdlet(VerbsCommon.Find, "Member", DefaultParameterSetName = "ByFilter")]
     public class FindMemberCommand : FindReflectionObjectCommandBase<MemberInfo>
     {
         private BindingFlags _flags;
