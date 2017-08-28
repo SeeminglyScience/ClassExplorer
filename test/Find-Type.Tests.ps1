@@ -51,7 +51,7 @@ Describe 'Find-Type tests' {
         $result | Should -Be ([powershell])
     }
     It 'matches by name' {
-        Find-Type runspace | Should -Be ([runspace])
+        Find-Type RunspaceMode | Should -Be ([System.Management.Automation.RunspaceMode])
     }
     It 'matches by namespace' {
         Find-Type -Namespace System.Timers | ShouldAll { $_.Namespace -eq 'System.Timers' }

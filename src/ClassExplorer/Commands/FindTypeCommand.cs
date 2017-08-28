@@ -24,6 +24,16 @@ namespace ClassExplorer.Commands
         public string Namespace { get; set; }
 
         /// <summary>
+        /// Gets or sets the type name to match.
+        /// </summary>
+        [Parameter(Position = 0, ParameterSetName = "ByName")]
+        [Parameter(ParameterSetName = "ByFilter")]
+        [ValidateNotNullOrEmpty]
+        [SupportsWildcards]
+        [ArgumentCompleter(typeof(TypeNameArgumentCompleter))]
+        public override string Name { get; set; }
+
+        /// <summary>
         /// Gets or sets the full type name to match.
         /// </summary>
         [Parameter]
