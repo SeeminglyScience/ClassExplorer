@@ -12,6 +12,16 @@ Find properties, methods, fields, etc that fit specific criteria.
 
 ## SYNTAX
 
+### ByFilter (Default)
+
+```powershell
+Find-Member [-ParameterType <Type>] [-ReturnType <Type>] [-IncludeSpecialName] [-MemberType <MemberTypes>]
+ [-Static] [-Instance] [-Abstract] [-Virtual] [[-FilterScript] <ScriptBlock>] [-Name <String>] [-Force]
+ [-RegularExpression] [-InputObject <PSObject>]
+```
+
+### ByName
+
 ```powershell
 Find-Member [-ParameterType <Type>] [-ReturnType <Type>] [-IncludeSpecialName] [-MemberType <MemberTypes>]
  [-Static] [-Instance] [-Abstract] [-Virtual] [-FilterScript <ScriptBlock>] [[-Name] <String>] [-Force]
@@ -144,10 +154,20 @@ Specifies a ScriptBlock to invoke as a filter. The variable "$_" or "$PSItem" co
 
 ```yaml
 Type: ScriptBlock
-Parameter Sets: (All)
+Parameter Sets: ByFilter
 Aliases:
 
-Required: True
+Required: False
+Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+
+Type: ScriptBlock
+Parameter Sets: ByName
+Aliases:
+
+Required: False
 Position: Named
 Default value: None
 Accept pipeline input: False
@@ -241,11 +261,21 @@ Specifies the member name to match.
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: ByName
 Aliases:
 
 Required: False
 Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: True
+
+Type: String
+Parameter Sets: ByFilter
+Aliases:
+
+Required: False
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: True

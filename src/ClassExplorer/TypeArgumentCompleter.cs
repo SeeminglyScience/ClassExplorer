@@ -44,14 +44,6 @@ namespace ClassExplorer
             return GetTypesForCompletion(wordToComplete).Select(NewResult);
         }
 
-        private static bool CompletionTypeFilter(Type m, object filterCriteria)
-        {
-            return m.IsPublic &&
-                filterCriteria is string wordToComplete
-                    ? m.Name.StartsWith(wordToComplete, StringComparison.InvariantCultureIgnoreCase)
-                    : false;
-        }
-
         private static CompletionResult NewResult(Type type)
         {
             return new CompletionResult(

@@ -12,7 +12,7 @@ namespace ClassExplorer.Commands
     /// The FindType cmdlet searches the AppDomain for matching types.
     /// </summary>
     [OutputType(typeof(Type))]
-    [Cmdlet(VerbsCommon.Find, "Type")]
+    [Cmdlet(VerbsCommon.Find, "Type", DefaultParameterSetName = "ByFilter")]
     public class FindTypeCommand : FindReflectionObjectCommandBase<Type>
     {
         /// <summary>
@@ -47,16 +47,6 @@ namespace ClassExplorer.Commands
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
         public Type ImplementsInterface { get; set; }
-
-        /// <summary>
-        /// Gets or sets the type name to match.
-        /// </summary>
-        [Parameter(Position = 0, ParameterSetName = "ByName")]
-        [Parameter(ParameterSetName = "__AllParameterSets")]
-        [ValidateNotNullOrEmpty]
-        [SupportsWildcards]
-        [ArgumentCompleter(typeof(TypeNameArgumentCompleter))]
-        public override string Name { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match abstract classes.
