@@ -119,7 +119,6 @@ Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 Find all members that start with the word Parse and take Token as a parameter. This example also
 demonstrates how this will even match the element of a type that is both an array and ByRef type.
 
-
 ### -------------------------- EXAMPLE 5 --------------------------
 
 ```powershell
@@ -281,6 +280,22 @@ Accept pipeline input: False
 Accept wildcard characters: True
 ```
 
+### -Not
+
+Specifies that this cmdlet should only return object that do not match the criteria.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ParameterType
 
 Specifies a type that a member must accept as a parameter to be matched. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
@@ -363,11 +378,13 @@ Accept wildcard characters: False
 
 ## INPUTS
 
-### Type, MemberInfo, PSObject
+### ClassExplorer.NamespaceInfo, System.Type, System.Reflection.MemberInfo, PSObject
+
+If you pass NamespaceInfo objects to this cmdlet it will match members from types declared in that namespace.
 
 If you pass Type objects to this cmdlet it will match members from that type.
 
-If you pass MemberInfo objects to this cmdlet it will filter them.
+If you pass MemberInfo objects as input this cmdlet will return the input if it matches the specified criteria.  You can use this to chain Find-Member commands to filter output.
 
 If you pass any other type to this cmdlet it will match members from that object's type.
 
@@ -382,5 +399,6 @@ Matched MemberInfo objects will be returned to the pipeline.
 ## RELATED LINKS
 
 [Find-Type](Find-Type.md)
+[Find-Namespace](Find-Namespace.md)
 [Get-Assembly](Get-Assembly.md)
 [Get-Parameter](Get-Parameter.md)
