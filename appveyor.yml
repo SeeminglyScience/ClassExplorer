@@ -16,7 +16,7 @@ install:
     choco install codecov --no-progress
 build_script:
 - ps: >-
-    \& "$PWD\build.ps1" -Force
+    . "$PWD\build.ps1" -Force
 
     $resultsFile = "$PWD\testresults\pester.xml"
 
