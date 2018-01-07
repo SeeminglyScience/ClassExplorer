@@ -18,6 +18,7 @@ namespace ClassExplorer.Commands
         [Parameter(Position = 0)]
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
+        [ArgumentCompleter(typeof(AssemblyNameArgumentCompleter))]
         public string Name { get; set; }
 
         /// <summary>
