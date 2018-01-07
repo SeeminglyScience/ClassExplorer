@@ -11,6 +11,21 @@ param(
 end {
     $CLASSEXPLORER_FORMAT_PS1XML = {
         [ExtendedTypeDefinition]::new(
+            'ClassExplorer.NamespaceInfo',
+            [FormatViewDefinition]::new(
+                'ClassExplorer.NamespaceInfo',
+                [TableControl]::Create().
+                    AddHeader('Left', 20).
+                    AddHeader('Left', 40).
+                    AddHeader('Left', $null, 'Assemblies').
+                    StartRowDefinition().
+                        AddPropertyColumn('Name').
+                        AddPropertyColumn('FullName').
+                        AddScriptBlockColumn('$_.Assemblies.GetName().Name -join ", "').
+                    EndRowDefinition().
+                EndTable()) -as [FormatViewDefinition[]])
+
+        [ExtendedTypeDefinition]::new(
             'System.Reflection.MemberInfo',
             [FormatViewDefinition]::new(
                 'System.Reflection.MemberInfo',

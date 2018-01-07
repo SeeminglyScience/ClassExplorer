@@ -7,16 +7,16 @@ install:
 - ps: >-
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
 
-    Install-Module Pester -RequiredVersion 4.0.6 -Scope CurrentUser -Force -SkipPublisherCheck
+    Install-Module Pester -RequiredVersion 4.1.1 -Scope CurrentUser -Force -SkipPublisherCheck
 
-    Install-Module InvokeBuild -RequiredVersion 3.2.1 -Scope CurrentUser -Force
+    Install-Module InvokeBuild -RequiredVersion 5.0.0 -Scope CurrentUser -Force
 
-    Install-Module platyPS -RequiredVersion 0.8.1 -Scope CurrentUser -Force
+    Install-Module platyPS -RequiredVersion 0.9.0 -Scope CurrentUser -Force
 
     choco install codecov --no-progress
 build_script:
 - ps: >-
-    Invoke-Build -Task Prerelease -Configuration Release -GenerateCodeCoverage
+    \& "$PWD\build.ps1" -Force
 
     $resultsFile = "$PWD\testresults\pester.xml"
 
@@ -30,3 +30,12 @@ build_script:
         $Error | Format-List * -Force
         exit 1;
     }
+on_finish:
+- ps: >-
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $zipPath = "$pwd\ClassExplorer.zip"
+
+    [System.IO.Compression.ZipFile]::CreateFromDirectory("$pwd\Release", $zipPath)
+
+    Push-AppveyorArtifact $zipPath

@@ -3,12 +3,12 @@ jobs:
     build:
         working_directory: ~/classexplorer
         docker:
-            - image: microsoft/powershell@sha256:6d36c498c1fdbb3ef42acabea1d06b12870e390fd3053993974ebaa6ba507849
+            - image: microsoft/powershell@sha256:c0bd0f7ad40bcc76130cb5e772515546e3d200f8a416a273b2605a942d9775f5
         steps:
             - checkout
             - run:
                 name: Run build script
-                command: 'powershell -File ./tools/InvokeCircleCI.ps1'
+                command: 'pwsh -File ./tools/InvokeCircleCI.ps1'
             - store_artifacts:
                 path: ./testresults/pester.xml
                 prefix: tests
