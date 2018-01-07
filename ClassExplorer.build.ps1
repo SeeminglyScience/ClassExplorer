@@ -1,19 +1,23 @@
-#requires -Module InvokeBuild, Pester, PlatyPS -Version 5.1
+#requires -Version 5.1
 
 [CmdletBinding()]
 param(
     [ValidateSet('Debug', 'Release')]
-    [string]
-    $Configuration = 'Debug',
+    [string] $Configuration = 'Debug',
 
-    [switch]
-    $GenerateCodeCoverage
+    [switch] $GenerateCodeCoverage,
+
+    [switch] $Force
 )
 
 $moduleName = 'ClassExplorer'
-$manifest   = Test-ModuleManifest -Path          $PSScriptRoot\module\$moduleName.psd1 `
-                                  -ErrorAction   Ignore `
-                                  -WarningAction Ignore
+$testModuleManifestSplat = @{
+    ErrorAction   = 'Ignore'
+    WarningAction = 'Ignore'
+    Path          = "$PSScriptRoot\module\$moduleName.psd1"
+}
+
+$manifest = Test-ModuleManifest @testModuleManifestSplat
 
 $script:Settings = @{
     Name          = $moduleName
@@ -39,13 +43,33 @@ $script:Discovery = @{
 }
 
 $tools = "$PSScriptRoot\tools"
+$script:GetDotNet = Get-Command $tools\GetDotNet.ps1
 $script:CreateFormatDefinitions = Get-Command $tools\CreateFormatDefinitions.ps1
-$script:dotnet = & $tools\GetDotNet.ps1 -Unix:$Discovery.IsUnix
+$script:AssertModule = Get-Command $tools\AssertRequiredModule.ps1
+$script:GetOpenCover = Get-Command $tools\GetOpenCover.ps1
 
-if ($GenerateCodeCoverage.IsPresent) {
-    $script:openCover = & $tools\GetOpenCover.ps1
+task AssertDotNet {
+    $script:dotnet = & $GetDotNet -Unix:$Discovery.IsUnix
 }
 
+task AssertOpenCover -If { $GenerateCodeCoverage.IsPresent } {
+    if ($Discovery.IsUnix) {
+        Write-Warning 'Generating code coverage from .NET core is currently unsupported, disabling code coverage generation.'
+        $script:GenerateCodeCoverage = $false
+        return
+    }
+
+    $script:openCover = & $GetOpenCover
+}
+
+task AssertRequiredModules {
+    & $AssertModule Pester 4.1.1 -Force:$Force.IsPresent
+    & $AssertModule InvokeBuild 5.0.0 -Force:$Force.IsPresent
+    & $AssertModule platyPS 0.9.0 -Force:$Force.IsPresent
+}
+
+# TODO: Look into replacing this junk with PSDepend
+task AssertDevDependencies -Jobs AssertDotNet, AssertOpenCover, AssertRequiredModules
 
 task Clean {
     if ($PSScriptRoot -and (Test-Path $PSScriptRoot\Release)) {
@@ -66,9 +90,6 @@ task BuildDocs -If { $Discovery.HasDocs } {
     $releaseDocs = '{0}\{1}' -f $Folders.Release, $PSCulture
 
     $null = New-Item $releaseDocs -ItemType Directory -Force -ErrorAction SilentlyContinue
-    if ($Discovery.IsUnix) {
-        Write-Host -ForegroundColor Green 'The mkdir errors below are fine, they''re due to a alias in platyPS'
-    }
     $null = New-ExternalHelp -Path $sourceDocs -OutputPath $releaseDocs
 }
 
@@ -123,12 +144,14 @@ task DoTest -If { $Discovery.HasTests -and $Settings.ShouldTest } {
             [System.Text.Encoding]::Unicode.GetBytes(
                 $scriptString))
 
-    $powershell = (Get-Command powershell).Source
+    $powershellCommand = 'powershell'
+    if ($Discovery.IsUnix) {
+        $powershellCommand = 'pwsh'
+    }
+
+    $powershell = (Get-Command $powershellCommand).Source
 
     if ($GenerateCodeCoverage.IsPresent) {
-        if ($Discovery.IsUnix) {
-            throw 'Generating code coverage from .NET core is currently unsupported.'
-        }
         # OpenCover needs full pdb's. I'm very open to suggestions for streamlining this...
         & $dotnet clean
         & $dotnet build --configuration $Configuration --framework net452 /p:DebugType=Full
@@ -185,7 +208,7 @@ task DoPublish {
     Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Confirm
 }
 
-task Build -Jobs Clean, BuildDll, CopyToRelease, BuildDocs, BuildFormat
+task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs, BuildFormat
 
 task Test -Jobs Build, DoTest
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
 using System.Reflection;
@@ -12,6 +13,12 @@ namespace ClassExplorer.Commands
     public abstract class FindReflectionObjectCommandBase<TMemberType> : Cmdlet
         where TMemberType : MemberInfo
     {
+        private static readonly PropertyInfo s_invocationInfo =
+            typeof(Cmdlet)
+                .GetProperty(
+                    "MyInvocation",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
         private readonly List<FilterFrame<TMemberType>> _filters = new List<FilterFrame<TMemberType>>();
 
         /// <summary>
@@ -53,9 +60,15 @@ namespace ClassExplorer.Commands
         public virtual PSObject InputObject { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the match should be negated.
+        /// </summary>
+        [Parameter]
+        public virtual SwitchParameter Not { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether valid input has been processed from the pipeline.
         /// </summary>
-        protected bool HasHadInput { get; set; }
+        protected bool ExpectingInput { get; set; }
 
         /// <summary>
         /// Gets a list of filters to use for matching.
@@ -97,6 +110,14 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void BeginProcessing()
         {
+            // Not sure why invocation info isn't public, but it's impossible to know pipeline
+            // position without it.  The long term fix is to move all of the logic in these cmdlets
+            // to public APIs and inherit PSCmdlet instead of Cmdlet.  I should have done that in the
+            // first place, but that's hindsight for ya.
+            ExpectingInput =
+                ((InvocationInfo)s_invocationInfo.GetValue(this)).ExpectingInput ||
+                InputObject != null;
+
             InitializeFilters();
         }
 
@@ -107,7 +128,18 @@ namespace ClassExplorer.Commands
         {
             if (InputObject == null) return;
 
-            HasHadInput = true;
+            // Support `Find-X -InputObject $memberList` syntax. This will be less performant but
+            // you probably aren't passing the entire AppDomain like this.
+            if (InputObject.BaseObject is IList list)
+            {
+                foreach (var item in list)
+                {
+                    ProcessSingleObject(PSObject.AsPSObject(item));
+                }
+
+                return;
+            }
+
             ProcessSingleObject(InputObject);
         }
 
@@ -120,13 +152,17 @@ namespace ClassExplorer.Commands
         /// <returns>A value indicating whether the object matches.</returns>
         protected bool AggregateFilter(TMemberType m, object filterCriteria)
         {
-            foreach (var frame in Filters)
+            if (Filters.Count == 0)
             {
-                bool filterResult = frame.Filter.Invoke(m, frame.Criteria);
-                if (!filterResult) return false;
+                return true;
             }
 
-            return true;
+            foreach (var frame in Filters)
+            {
+                if (!frame.Filter(m, frame.Criteria)) return Not.IsPresent;
+            }
+
+            return !Not.IsPresent;
         }
 
         /// <summary>
@@ -169,13 +205,17 @@ namespace ClassExplorer.Commands
 
             if (RegularExpression.IsPresent)
             {
-                var regexPattern = new Regex(pattern, RegexOptions.IgnoreCase);
-                Filters.Add(CreateFrame(regexMethod, regexPattern));
+                Filters.Add(
+                    CreateFrame(
+                        regexMethod,
+                        new Regex(pattern, RegexOptions.IgnoreCase)));
                 return;
             }
 
-            var wildcardPattern = new WildcardPattern(pattern, WildcardOptions.IgnoreCase);
-            Filters.Add(CreateFrame(wildcardMethod, wildcardPattern));
+            Filters.Add(
+                CreateFrame(
+                    wildcardMethod,
+                    new WildcardPattern(pattern, WildcardOptions.IgnoreCase)));
         }
 
         /// <summary>

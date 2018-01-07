@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.1'
+ModuleVersion = '1.1.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -48,7 +48,7 @@ ProcessorArchitecture = 'None'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter'
+CmdletsToExport = 'Find-Member', 'Find-Type', 'Find-Namespace', 'Get-Assembly', 'Get-Parameter'
 
 # Variables to export from this module
 VariablesToExport = @()
@@ -88,7 +88,40 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = '- Fix positional binding of FilterScript for Find-Member and Find-Type.'
+        ReleaseNotes = @'
+# Version 1.1.0
+
+## Find-Namespace Cmdlet
+
+Added the `Find-Namespace` cmdlet for searching the AppDomain for specific namespaces.  This is
+paticularly useful when exploring a new assembly to get a quick idea what's available. The namespace
+objects returned from this cmdlet can be piped into `Find-Type` or `Find-Member`.
+
+## More argument completion
+
+Namespace parameters for `Find-Namespace` and `Find-Type` now have tab completion. The `Name` parameter
+for `Get-Assembly` will now also complete assembly names.
+
+## Not parameter
+
+The cmdlets `Find-Namespace`, `Find-Type`, and `Find-Member` now have a `Not` parameter to negate the
+search criteria. This makes chaining the commands to filter results a lot easier. Here's a basic example.
+
+```powershell
+Find-Namespace Automation | Find-Member -Static | Find-Member -MemberType Field -Not
+```
+
+## Fixes
+
+- The `Find-*` cmdlets no longer return all matches in the AppDomain if passed null pipeline input
+
+- Added support for explicitly specifying the `InputObject` parameter from pipeline position 0
+
+- `Find-Type` no longer throws when the `Namespace` parameter is specified with the `RegularExpression`
+  switch parameter
+
+- Various build and test fixes
+'@
 
     } # End of PSData hashtable
 

@@ -14,14 +14,14 @@ Describe 'Find-Member cmdlet tests' {
             $results = get-item . | Find-Member
 
             $results | Should -Not -BeNullOrEmpty
-            $results | ShouldAll { $_.ReflectedType -eq [System.IO.DirectoryInfo] }
+            $results | Should -All { $_.ReflectedType -eq [System.IO.DirectoryInfo] }
         }
 
         It 'filters passed members' {
             $source = [powershell] | Find-Member -Force
             $results = $source | Find-Member -Static
 
-            $results | ShouldAll { $_ -in $source }
+            $results | Should -All { $_ -in $source }
             $results.Count | Should -Not -Be $source.Count
         }
     }
@@ -35,10 +35,10 @@ Describe 'Find-Member cmdlet tests' {
         $result = $ExecutionContext.SessionState | Find-Member -Force
 
         # A nonpublic member is present
-        $result | ShouldAny { $_.Name -eq 'Internal' -and 'Property' -eq $_.MemberType }
+        $result | Should -Any { $_.Name -eq 'Internal' -and 'Property' -eq $_.MemberType }
 
         # A public member is still present
-        $result | ShouldAny { $_.Name -eq 'Module' -and 'Property' -eq $_.MemberType }
+        $result | Should -Any { $_.Name -eq 'Module' -and 'Property' -eq $_.MemberType }
     }
 
     It 'matches with FilterScript' {
@@ -51,39 +51,39 @@ Describe 'Find-Member cmdlet tests' {
     }
 
     It 'matches name with wildcards' {
-        [powershell] | Find-Member Creat* | ShouldAny { $_.Name -eq 'Create' }
+        [powershell] | Find-Member Creat* | Should -Any { $_.Name -eq 'Create' }
     }
 
     It 'matches name with regex' {
         $result = [runspacefactory] | Find-Member Create.*Runspace -RegularExpression
 
-        $result | ShouldAny { $_.Name -eq 'CreateRunspace' }
-        $result | ShouldAny { $_.Name -eq 'CreateOutOfProcessRunspace' }
+        $result | Should -Any { $_.Name -eq 'CreateRunspace' }
+        $result | Should -Any { $_.Name -eq 'CreateOutOfProcessRunspace' }
     }
 
     It 'matches parameter type' {
         [System.Management.Automation.Language.Parser] |
             Find-Member -ParameterType System.Management.Automation.Language.Token |
-            ShouldAny { $_.Name -eq 'ParseInput' }
+            Should -Any { $_.Name -eq 'ParseInput' }
     }
 
     It 'matches return type' {
         [powershell] |
             Find-Member -ReturnType PowerShell |
-            ShouldAny { $_.Name -eq 'Create' }
+            Should -Any { $_.Name -eq 'Create' }
     }
 
     It 'return type matches constructors' {
         [System.Collections.Generic.List[string]] |
             Find-Member -ReturnType System.Collections.Generic.List[string] |
-            ShouldAny { 'Constructor' -eq $_.MemberType }
+            Should -Any { 'Constructor' -eq $_.MemberType }
     }
 
     It 'unwraps target types with elements' {
         $result = [System.Management.Automation.Language.Parser] |
             Find-Member -ParameterType System.Management.Automation.Language.Token
 
-        $result | ShouldAny {
+        $result | Should -Any {
             ($parameters = $_.GetParameters()) -and
             $parameters[1].ParameterType.IsByRef -and
             $parameters[1].ParameterType.GetElementType().IsArray
@@ -101,33 +101,33 @@ Describe 'Find-Member cmdlet tests' {
     It 'filters to virtual members' {
         $results = [runspace] | Find-Member -Virtual
 
-        $results | ShouldAll { $_.IsVirtual }
-        $results | ShouldAny { $_.Name -eq 'CreateNestedPipeline' }
-        $results | ShouldAny { $_.Name -eq 'GetHashCode' }
+        $results | Should -All { $_.IsVirtual }
+        $results | Should -Any { $_.Name -eq 'CreateNestedPipeline' }
+        $results | Should -Any { $_.Name -eq 'GetHashCode' }
     }
 
     It 'filters to abstract' {
         $results = [runspace] | Find-Member -Abstract
 
-        $results | ShouldAll { $_.IsAbstract }
-        $results | ShouldAny { $_.Name -eq 'Open' }
-        $results | ShouldAll { $_.Name -ne 'GetHashCode' }
+        $results | Should -All { $_.IsAbstract }
+        $results | Should -Any { $_.Name -eq 'Open' }
+        $results | Should -All { $_.Name -ne 'GetHashCode' }
     }
 
     It 'filters to instance' {
         $results = [powershell] | Find-Member -Instance
 
-        $results | ShouldAll { -not $_.IsStatic -and -not $_.GetMethod.IsStatic }
-        $results | ShouldAll { $_.Name -ne 'Create' }
-        $results | ShouldAny { $_.Name -eq 'AddScript' }
+        $results | Should -All -Not { $_.IsStatic -or $_.GetMethod.IsStatic }
+        $results | Should -All -Not { $_.Name -eq 'Create' }
+        $results | Should -Any { $_.Name -eq 'AddScript' }
     }
 
     It 'filters to static' {
         $results = [powershell] | Find-Member -Static
 
-        $results | ShouldAll { $_.IsStatic -or $_.GetMethod.IsStatic }
-        $results | ShouldAll { $_.Name -ne 'AddScript' }
-        $results | ShouldAny { $_.Name -eq 'Create' }
+        $results | Should -All { $_.IsStatic -or $_.GetMethod.IsStatic }
+        $results | Should -All { $_.Name -ne 'AddScript' }
+        $results | Should -Any { $_.Name -eq 'Create' }
     }
 
     It 'gets members for passed objects only once per type' {

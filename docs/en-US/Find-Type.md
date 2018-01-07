@@ -225,6 +225,22 @@ Accept pipeline input: False
 Accept wildcard characters: True
 ```
 
+### -Not
+
+Specifies that this cmdlet should only return object that do not match the criteria.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -RegularExpression
 
 If specified all parameters that accept wildcards will match regular expressions instead.
@@ -243,11 +259,13 @@ Accept wildcard characters: False
 
 ## INPUTS
 
-### System.Reflection.Assembly, System.Type, System.Management.Automation.PSObject
+### ClassExplorer.NamespaceInfo, System.Reflection.Assembly, System.Type, PSObject
+
+If you pass NamespaceInfo objects to this cmdlet it will match types declared in that namespace.
 
 If you pass assemblies to this cmdlet it will match types from that assembly.
 
-If you pass types to this cmdlet it will filter the passed types.
+If you pass Type objects as input this cmdlet will return the input if it matches the specified criteria.  You can use this to chain Find-Type commands to filter output.
 
 If you pass any other object to this cmdlet it will return the type of that object.
 
@@ -262,5 +280,6 @@ Matched Type objected will be returned to the pipeline.
 ## RELATED LINKS
 
 [Find-Member](Find-Member.md)
+[Find-Namespace](Find-Namespace.md)
 [Get-Assembly](Get-Assembly.md)
 [Get-Parameter](Get-Parameter.md)

@@ -8,7 +8,7 @@ Describe 'Get-Parameter tests' {
     It 'gets parameters' {
         $results = [powershell] | Find-Member -MemberType Method | Get-Parameter
 
-        $results | ShouldAny { $_.Name -eq 'asyncResult' }
+        $results | Should -Any { $_.Name -eq 'asyncResult' }
     }
 
     It 'returns nothing without input' {

@@ -8,7 +8,7 @@ Describe 'Get-Assembly Tests' {
     It 'can get assemblies' {
         $results = Get-Assembly
 
-        $results | ShouldAny { $_.GetName().Name -eq 'ClassExplorer' }
+        $results | Should -Any { $_.GetName().Name -eq 'ClassExplorer' }
         $results.Count | Should -BeGreaterThan 5
     }
     It 'can get a specific assembly' {
@@ -18,7 +18,7 @@ Describe 'Get-Assembly Tests' {
     }
     It 'matches assemblies using wildcards' {
         $results = Get-Assembly *PowerShell*
-        $results | ShouldAll { $_.GetName().Name -match 'PowerShell' }
+        $results | Should -All { $_.GetName().Name -match 'PowerShell' }
         $results.Count | Should -BeGreaterThan 1
     }
 }

@@ -21,6 +21,8 @@ namespace ClassExplorer.Commands
         [Parameter(Position = 1)]
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
+        [ArgumentCompleter(typeof(NamespaceArgumentCompleter))]
+        [Alias("ns")]
         public string Namespace { get; set; }
 
         /// <summary>
@@ -81,7 +83,7 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void EndProcessing()
         {
-            if (HasHadInput) return;
+            if (ExpectingInput) return;
 
             Array.ForEach(
                 AppDomain
@@ -96,6 +98,15 @@ namespace ClassExplorer.Commands
         /// <param name="input">The input parameter from the pipeline.</param>
         protected override void ProcessSingleObject(PSObject input)
         {
+            if (input.BaseObject is NamespaceInfo ns)
+            {
+                ProcessName(ns.FullName, WildcardNamespaceFilter, RegexNamespaceFilter);
+                Array.ForEach(
+                    ns.Assemblies.ToArray(),
+                    ProcessAssembly);
+                return;
+            }
+
             if (input.BaseObject is Assembly assembly)
             {
                 ProcessAssembly(assembly);
@@ -178,7 +189,8 @@ namespace ClassExplorer.Commands
         {
             Regex pattern = filterCriteria as Regex;
 
-            return pattern == null ? false : pattern.IsMatch(m.Namespace);
+            return !string.IsNullOrWhiteSpace(m.Namespace) &&
+                pattern == null ? false : pattern.IsMatch(m.Namespace);
         }
 
         private static bool WildcardFullNameFilter(Type m, object filterCriteria)

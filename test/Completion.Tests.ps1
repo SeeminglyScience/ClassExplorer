@@ -11,21 +11,31 @@ function Complete {
             CompleteInput(
                 $Expression,
                 $Expression.Length,
-                $null)
+                $null).
+                CompletionMatches
     }
 }
 
 Describe 'Completion tests' {
     It 'can complete type name' {
-        $results = complete 'Find-Type -Name Toke'
-
-        $results.CompletionMatches | ShouldAll { $_.CompletionText.StartsWith('Token') }
-        $results.CompletionMatches | Should -Not -BeNullOrEmpty
+        Complete 'Find-Type -Name Toke' | Should -All { $_.CompletionText.StartsWith('Token') }
     }
-    It 'can complete type full names' {
-        $results = complete 'Find-Member -ReturnType Ast'
 
-        $results.CompletionMatches |
-            ShouldAny { $_.CompletionText -eq 'System.Management.Automation.Language.Ast' }
+    It 'can complete type full names' {
+        Complete 'Find-Member -ReturnType Ast' | Should -All { $_.CompletionText -match '\.Ast' }
+    }
+
+    It 'can complete namespace names' {
+        Complete 'Find-Namespace Autom' | Should -HaveProperty CompletionText -WithValue Automation
+    }
+
+    It 'can complete namespaces' {
+        Complete 'Find-Namespace -FullName Autom' |
+            Should -HaveProperty CompletionText -WithValue System.Management.Automation
+    }
+
+    It 'can complete assembly names' {
+        Complete 'Get-Assembly System.Management.Autom' |
+            Should -HaveProperty CompletionText -WithValue System.Management.Automation
     }
 }
