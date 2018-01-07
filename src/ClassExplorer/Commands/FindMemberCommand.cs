@@ -52,8 +52,13 @@ namespace ClassExplorer.Commands
         {
             get
             {
-                return _memberTypes == null
-                    ? MemberTypes.All
+                if (_memberTypes == null)
+                {
+                    return MemberTypes.All;
+                }
+
+                return Not.IsPresent
+                    ? MemberTypes.All ^ _memberTypes.Value
                     : _memberTypes.Value;
             }
 
@@ -92,8 +97,7 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void EndProcessing()
         {
-            if (HasHadInput) return;
-
+            if (ExpectingInput) return;
             WriteObject(
                 new FindTypeCommand().Invoke<Type>()
                     .Where(type => Force.IsPresent || type.IsPublic)
@@ -119,6 +123,16 @@ namespace ClassExplorer.Commands
             if (input.BaseObject is Type type)
             {
                 ProcessSingleType(type);
+                return;
+            }
+
+            if (input.BaseObject is NamespaceInfo)
+            {
+                Array.ForEach(
+                    new FindTypeCommand() { InputObject = input }
+                        .Invoke<Type>()
+                        .ToArray(),
+                    ProcessSingleType);
                 return;
             }
 
@@ -158,7 +172,11 @@ namespace ClassExplorer.Commands
                 _flags &= ~BindingFlags.Static;
             }
 
-            ProcessParameter(SpecialNameFilter, !IncludeSpecialName.IsPresent);
+            if (!Not.IsPresent)
+            {
+                ProcessParameter(SpecialNameFilter, !IncludeSpecialName.IsPresent);
+            }
+
             ProcessName(Name, WildcardNameFilter, RegexNameFilter);
             ProcessParameter<Type>(ParameterTypeFilter, ParameterType);
             ProcessParameter<Type>(ReturnTypeFilter, ReturnType);
@@ -259,8 +277,10 @@ namespace ClassExplorer.Commands
 
         private static bool IsTypeCompatible(Type sourceType, Type targetType)
         {
-            // While technically true Object is compatible it's not super helpful.
-            if (sourceType == typeof(object))
+            // While technically true these are compatible, it's not super helpful.
+            if (sourceType == typeof(object) ||
+                sourceType == typeof(Enum) ||
+                sourceType == typeof(MarshalByRefObject))
             {
                 return false;
             }
