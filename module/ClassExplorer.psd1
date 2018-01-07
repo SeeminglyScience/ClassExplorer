@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.1'
+ModuleVersion = '1.1.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -48,7 +48,7 @@ ProcessorArchitecture = 'None'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter'
+CmdletsToExport = 'Find-Member', 'Find-Type', 'Find-Namespace', 'Get-Assembly', 'Get-Parameter'
 
 # Variables to export from this module
 VariablesToExport = @()
