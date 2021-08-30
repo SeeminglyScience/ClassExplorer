@@ -21,8 +21,7 @@ namespace ClassExplorer
         /// <returns>Type objects that match the current text.</returns>
         public static IEnumerable<Type> GetTypesForCompletion(string wordToComplete)
         {
-            return new FindTypeCommand() { Name = wordToComplete + "*" }.Invoke<Type>()
-                .OrderByDescending(t => t.Namespace.StartsWith("System.Management.Automation"));
+            return new FindTypeCommand() { Name = wordToComplete + "*" }.Invoke<Type>();
         }
 
         /// <summary>
@@ -41,14 +40,23 @@ namespace ClassExplorer
             CommandAst commandAst,
             IDictionary fakeBoundParameters)
         {
-            return GetTypesForCompletion(wordToComplete).Select(NewResult);
+            return GetTypesForCompletion(wordToComplete).Select(static (type) => NewResult(type));
         }
 
         private static CompletionResult NewResult(Type type)
         {
+            if (type.IsGenericType)
+            {
+                return new CompletionResult(
+                    type.FullName,
+                    type.FullName,
+                    CompletionResultType.ParameterValue,
+                    type.FullName);
+            }
+
             return new CompletionResult(
                 ToStringCodeMethods.Type(PSObject.AsPSObject(type)),
-                type.Name,
+                type.FullName,
                 CompletionResultType.ParameterValue,
                 type.FullName);
         }

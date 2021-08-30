@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using ClassExplorer.Signatures;
 using static ClassExplorer.FilterFrame<System.Reflection.MemberInfo>;
 
 namespace ClassExplorer.Commands
@@ -10,15 +11,21 @@ namespace ClassExplorer.Commands
     /// <summary>
     /// The Find-Member cmdlet searches the current AppDomain for matching members.
     /// </summary>
-    [OutputType(typeof(MemberInfo))]
+    [OutputType(
+        typeof(PropertyInfo),
+        typeof(MethodInfo),
+        typeof(ConstructorInfo),
+        typeof(EventInfo),
+        typeof(FieldInfo),
+        typeof(Type))]
     [Cmdlet(VerbsCommon.Find, "Member", DefaultParameterSetName = "ByFilter")]
     public class FindMemberCommand : FindReflectionObjectCommandBase<MemberInfo>
     {
+        private readonly HashSet<Type> _processedTypes = new();
+
         private BindingFlags _flags;
 
         private MemberTypes? _memberTypes;
-
-        private List<Type> _processedTypes = new List<Type>();
 
         /// <summary>
         /// Gets or sets the parameter type to match.
@@ -26,7 +33,7 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type ParameterType { get; set; }
+        public ScriptBlockStringOrType ParameterType { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the return, property, or field type to match.
@@ -34,13 +41,16 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type ReturnType { get; set; }
+        public ScriptBlockStringOrType ReturnType { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether to include special name members.
         /// </summary>
         [Parameter]
         public SwitchParameter IncludeSpecialName { get; set; }
+
+        [Parameter]
+        public ScriptBlockStringOrType Decoration { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the member type to match.
@@ -92,25 +102,16 @@ namespace ClassExplorer.Commands
         [Parameter]
         public SwitchParameter Virtual { get; set; }
 
-        /// <summary>
-        /// The EndProcessing method.
-        /// </summary>
-        protected override void EndProcessing()
+        private protected override void OnNoInput()
         {
-            if (ExpectingInput) return;
-            WriteObject(
-                new FindTypeCommand().Invoke<Type>()
-                    .Where(type => Force.IsPresent || type.IsPublic)
-                    .SelectMany(
-                        type =>
-                        {
-                            return type.FindMembers(
-                                MemberType,
-                                _flags,
-                                AggregateFilter,
-                                null);
-                        }),
-                enumerateCollection: true);
+            foreach (Type type in new FindTypeCommand() { Force = Force }.Invoke<Type>())
+            {
+                type.FindMembers(
+                    MemberType,
+                    _flags,
+                    static (m, fc) => AggregateFilter(m, fc),
+                    this);
+            }
         }
 
         /// <summary>
@@ -126,16 +127,6 @@ namespace ClassExplorer.Commands
                 return;
             }
 
-            if (input.BaseObject is NamespaceInfo)
-            {
-                Array.ForEach(
-                    new FindTypeCommand() { InputObject = input }
-                        .Invoke<Type>()
-                        .ToArray(),
-                    ProcessSingleType);
-                return;
-            }
-
             if (input.BaseObject is MemberInfo member)
             {
                 // Filtering by binding flags and member type is done with arguments to Type.FindMembers
@@ -144,10 +135,12 @@ namespace ClassExplorer.Commands
                 return;
             }
 
-            var targetType = input.BaseObject.GetType();
-            if (_processedTypes.Contains(targetType)) return;
+            Type targetType = input.BaseObject.GetType();
+            if (!_processedTypes.Add(targetType))
+            {
+                return;
+            }
 
-            _processedTypes.Add(targetType);
             ProcessSingleType(targetType);
         }
 
@@ -156,6 +149,8 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void InitializeFilters()
         {
+            Dictionary<string, ScriptBlockStringOrType>? resolutionMap = InitializeResolutionMap();
+
             _flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
             if (Force.IsPresent)
             {
@@ -174,27 +169,50 @@ namespace ClassExplorer.Commands
 
             if (!Not.IsPresent)
             {
-                ProcessParameter(SpecialNameFilter, !IncludeSpecialName.IsPresent);
+                ProcessParameter(static (m, fc) => SpecialNameFilter(m, fc), !IncludeSpecialName.IsPresent);
             }
 
-            ProcessName(Name, WildcardNameFilter, RegexNameFilter);
-            ProcessParameter<Type>(ParameterTypeFilter, ParameterType);
-            ProcessParameter<Type>(ReturnTypeFilter, ReturnType);
-            ProcessParameter((m, fc) => m is MethodInfo method ? method.IsAbstract : false, Abstract.IsPresent);
-            ProcessParameter((m, fc) => m is MethodInfo method ? method.IsVirtual : false, Virtual.IsPresent);
+            ProcessName(
+                Name,
+                static (m, fc) => WildcardNameFilter(m, fc),
+                static (m, fc) => RegexNameFilter(m, fc));
+
+            var parser = new SignatureParser(resolutionMap);
+
+            if (ParameterType is not null)
+            {
+                Filters.Add(
+                    CreateFrame(
+                        static (m, fc) => Unsafe.As<IMemberSignature>(fc).IsMatch(m),
+                        new ParameterTypeSignature(ParameterType.Resolve(parser))));
+            }
+
+            if (ReturnType is not null)
+            {
+                Filters.Add(
+                    CreateFrame(
+                        static (m, fc) => Unsafe.As<IMemberSignature>(fc).IsMatch(m),
+                        new ReturnTypeSignature(ReturnType.Resolve(parser))));
+            }
+
+            if (Decoration is not null)
+            {
+                Filters.Add(
+                    CreateFrame(
+                        static (m, fc) => Unsafe.As<IMemberSignature>(fc).IsMatch(m),
+                        new DecorationSignature(SignatureParser.ResolveAttributeTypeName(Decoration, resolutionMap))));
+            }
+
+            ProcessParameter(static (m, _) => m is MethodInfo method && method.IsAbstract, Abstract.IsPresent);
+            ProcessParameter(static (m, _) => m is MethodInfo method && method.IsVirtual, Virtual.IsPresent);
 
             if (FilterScript != null)
             {
-                var filter = new ReflectionFilter(
-                    (type, criteria) =>
-                    {
-                        return LanguagePrimitives.IsTrue(
-                            FilterScript.InvokeWithContext(
-                                null,
-                                new List<PSVariable>() { new PSVariable("_", type) },
-                                type));
-                    });
-                ProcessParameter(filter, true);
+                IMemberSignature memberScriptSig = new FilterScriptSignature(FilterScriptPipe.Create(FilterScript));
+                ReflectionFilter filter = new(
+                    static (m, fc) => Unsafe.As<IMemberSignature>(fc).IsMatch(m));
+
+                ProcessParameter(filter, memberScriptSig);
             }
         }
 
@@ -210,146 +228,45 @@ namespace ClassExplorer.Commands
             throw new NotSupportedException();
         }
 
-        private static bool ParameterTypeFilter(MemberInfo m, object filterCriteria)
+        private static bool SpecialNameFilter(MemberInfo m, object? _)
         {
-            if (m is MethodBase method && filterCriteria is Type parameterType)
-            {
-                return method
-                    .GetParameters()
-                    .Any(p => IsOfTypeOrElementType(p.ParameterType, parameterType));
-            }
-
-            return false;
-        }
-
-        private static bool ReturnTypeFilter(MemberInfo m, object filterCriteria)
-        {
-            var targetType = filterCriteria as Type;
-            if (targetType == null) return false;
-
-            if (m is PropertyInfo property)
-            {
-                return IsOfTypeOrElementType(property.PropertyType, targetType);
-            }
-
-            if (m is MethodInfo method)
-            {
-                return IsOfTypeOrElementType(method.ReturnType, targetType);
-            }
-
-            if (m is ConstructorInfo constructor)
-            {
-                return IsOfTypeOrElementType(constructor.ReflectedType, targetType);
-            }
-
-            if (m is FieldInfo field)
-            {
-                return IsOfTypeOrElementType(field.FieldType, targetType);
-            }
-
-            return false;
-        }
-
-        private static bool IsOfTypeOrElementType(Type sourceType, Type targetType)
-        {
-            if (IsTypeCompatible(sourceType, targetType)) return true;
-
-            if (HasElement(sourceType))
-            {
-                Type newSource = sourceType;
-                while (HasElement(newSource) && ShouldUnwrap(newSource, targetType))
-                {
-                    newSource = newSource.GetElementType();
-                }
-
-                return IsTypeCompatible(newSource, targetType);
-            }
-
-            if (sourceType.IsGenericType)
-            {
-                return sourceType
-                    .GetGenericArguments()
-                    .Any(type => IsTypeCompatible(sourceType, targetType));
-            }
-
-            return false;
-        }
-
-        private static bool IsTypeCompatible(Type sourceType, Type targetType)
-        {
-            // While technically true these are compatible, it's not super helpful.
-            if (sourceType == typeof(object) ||
-                sourceType == typeof(Enum) ||
-                sourceType == typeof(MarshalByRefObject))
-            {
-                return false;
-            }
-
-            if (targetType.IsAssignableFrom(sourceType))
-            {
-                return true;
-            }
-
-            if (targetType.IsSubclassOf(sourceType))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ShouldUnwrap(Type sourceType, Type targetType)
-        {
-            return (sourceType.IsArray && !targetType.IsArray) ||
-                    sourceType.IsPointer ||
-                    sourceType.IsByRef;
-        }
-
-        private static bool HasElement(Type type)
-        {
-            return type.IsArray || type.IsPointer || type.IsByRef;
-        }
-
-        private static bool SpecialNameFilter(MemberInfo m, object filterCriteria)
-        {
-            return m is MethodInfo method
-                ? !method.IsSpecialName
-                : true;
+            return m is not MethodInfo method || !method.IsSpecialName;
         }
 
         private void ProcessSingleType(Type input)
         {
-            WriteObject(
-                input.FindMembers(
-                    MemberType,
-                    _flags,
-                    AggregateFilter,
-                    null),
-                enumerateCollection: true);
+            input.FindMembers(
+                MemberType,
+                _flags,
+                static (m, fc) => AggregateFilter(m, fc),
+                filterCriteria: this);
         }
 
         private void FindMemberProxy(MemberInfo member)
         {
-            if (!MemberType.HasFlag(member.MemberType) ||
-                !MatchesBindingFlags(member) ||
-                !AggregateFilter(member, null))
+            if (!MemberType.HasFlag(member.MemberType)
+                || !MatchesBindingFlags(member))
             {
                 return;
             }
 
-            WriteObject(member);
+            AggregateFilter(member, this);
         }
 
         private bool MatchesBindingFlags(MemberInfo member)
         {
-            if (_flags.HasFlag(BindingFlags.Static) && _flags.HasFlag(BindingFlags.Instance))
+            const BindingFlags staticInstance = BindingFlags.Static | BindingFlags.Instance;
+            if ((_flags & staticInstance) is staticInstance)
             {
                 return true;
             }
 
-            return
-                !((IsStatic(member) && !_flags.HasFlag(BindingFlags.Static)) ||
-                (!IsStatic(member) && !_flags.HasFlag(BindingFlags.Instance)));
+            if (IsStatic(member))
+            {
+                return (_flags & BindingFlags.Static) is not 0;
+            }
+
+            return (_flags & BindingFlags.Instance) is not 0;
         }
 
         private bool IsStatic(MemberInfo member)
@@ -361,7 +278,8 @@ namespace ClassExplorer.Commands
 
             if (member is PropertyInfo property)
             {
-                return property.GetMethod.IsStatic;
+                return (property.GetGetMethod(nonPublic: true)
+                    ?? property.GetSetMethod(nonPublic: true))?.IsStatic is true;
             }
 
             if (member is FieldInfo field)
@@ -371,7 +289,8 @@ namespace ClassExplorer.Commands
 
             if (member is EventInfo eventInfo)
             {
-                return eventInfo.AddMethod.IsStatic;
+                return (eventInfo.GetAddMethod(nonPublic: true)
+                    ?? eventInfo.GetRemoveMethod(nonPublic: true))?.IsStatic is true;
             }
 
             return true;

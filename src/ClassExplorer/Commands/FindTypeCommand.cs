@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using ClassExplorer.Signatures;
 using static ClassExplorer.FilterFrame<System.Type>;
 
 namespace ClassExplorer.Commands
@@ -23,7 +25,7 @@ namespace ClassExplorer.Commands
         [SupportsWildcards]
         [ArgumentCompleter(typeof(NamespaceArgumentCompleter))]
         [Alias("ns")]
-        public string Namespace { get; set; }
+        public string Namespace { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the type name to match.
@@ -33,7 +35,7 @@ namespace ClassExplorer.Commands
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
         [ArgumentCompleter(typeof(TypeNameArgumentCompleter))]
-        public override string Name { get; set; }
+        public override string Name { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the full type name to match.
@@ -41,7 +43,7 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the base type that a type must inherit to match.
@@ -50,7 +52,7 @@ namespace ClassExplorer.Commands
         [ValidateNotNull]
         [Alias("Base")]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type InheritsType { get; set; }
+        public Type InheritsType { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the interface that a type must implement to match.
@@ -58,7 +60,11 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type ImplementsInterface { get; set; }
+        public Type ImplementsInterface { get; set; } = null!;
+
+        [Parameter]
+        [ValidateNotNull]
+        public ScriptBlock Signature { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match abstract classes.
@@ -78,18 +84,12 @@ namespace ClassExplorer.Commands
         [Parameter]
         public SwitchParameter ValueType { get; set; }
 
-        /// <summary>
-        /// The EndProcessing method.
-        /// </summary>
-        protected override void EndProcessing()
+        private protected override void OnNoInput()
         {
-            if (ExpectingInput) return;
-
-            Array.ForEach(
-                AppDomain
-                    .CurrentDomain
-                    .GetAssemblies(),
-                ProcessAssembly);
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                ProcessAssembly(assembly);
+            }
         }
 
         /// <summary>
@@ -98,22 +98,13 @@ namespace ClassExplorer.Commands
         /// <param name="input">The input parameter from the pipeline.</param>
         protected override void ProcessSingleObject(PSObject input)
         {
-            if (input.BaseObject is NamespaceInfo ns)
-            {
-                ProcessName(ns.FullName, WildcardNamespaceFilter, RegexNamespaceFilter);
-                Array.ForEach(
-                    ns.Assemblies.ToArray(),
-                    ProcessAssembly);
-                return;
-            }
-
             if (input.BaseObject is Assembly assembly)
             {
                 ProcessAssembly(assembly);
                 return;
             }
 
-            if (input.BaseObject is Type type)
+            if (input.BaseObject is Type)
             {
                 base.ProcessSingleObject(input);
                 return;
@@ -129,26 +120,35 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void InitializeFilters()
         {
-            ProcessParameter(PublicFilter, !Force.IsPresent);
-            ProcessParameter(AbstractFilter, Abstract.IsPresent);
-            ProcessParameter(InterfaceFilter, Interface.IsPresent);
-            ProcessParameter(ValueTypeFilter, ValueType.IsPresent);
-            ProcessParameter<Type>(ParentFilter, InheritsType);
-            ProcessParameter<Type>(ImplementsFilter, ImplementsInterface);
+            Dictionary<string, ScriptBlockStringOrType>? resolutionMap = InitializeResolutionMap();
+            ProcessParameter(static (m, _) => m.IsPublic, !Force.IsPresent);
+            ProcessParameter(static (m, _) => m.IsAbstract, Abstract.IsPresent);
+            ProcessParameter(static (m, _) => m.IsInterface, Interface.IsPresent);
+            ProcessParameter(static (m, _) => m.IsValueType, ValueType.IsPresent);
+            if (InheritsType is not null)
+            {
+                ProcessParameter(
+                    static (m, fc) => Unsafe.As<ITypeSignature>(fc).IsMatch(m),
+                    new AssignableTypeSignature(InheritsType));
+            }
+
+            ProcessParameter(static (m, fc) => ImplementsFilter(m, fc), ImplementsInterface);
             ProcessNameParameters();
 
-            if (FilterScript != null)
+            if (Signature is not null)
             {
-                var filter = new ReflectionFilter(
-                    (type, criteria) =>
-                    {
-                        return LanguagePrimitives.IsTrue(
-                            FilterScript.InvokeWithContext(
-                                null,
-                                new List<PSVariable>() { new PSVariable("_", type) },
-                                type));
-                    });
-                ProcessParameter(filter, true);
+                ProcessParameter(
+                    static (m, fc) => Unsafe.As<ITypeSignature>(fc).IsMatch(m),
+                    new ScriptBlockStringOrType(Signature).Resolve(new SignatureParser(resolutionMap)));
+            }
+
+            if (FilterScript is not null)
+            {
+                ITypeSignature filterScriptSig = new FilterScriptSignature(FilterScriptPipe.Create(FilterScript));
+                ReflectionFilter filter = new(
+                    static (type, criteria) => Unsafe.As<ITypeSignature>(criteria).IsMatch(type));
+
+                ProcessParameter(filter, filterScriptSig);
             }
         }
 
@@ -163,90 +163,96 @@ namespace ClassExplorer.Commands
             return m.IsPublic;
         }
 
-        private static bool AbstractFilter(Type m, object filter)
+        private static bool WildcardNamespaceFilter(Type m, object? filterCriteria)
         {
-            return m.IsAbstract;
+            return Unsafe.As<WildcardPattern>(filterCriteria).IsMatch(m.Namespace);
         }
 
-        private static bool InterfaceFilter(Type m, object filter)
+        private static bool RegexNamespaceFilter(Type m, object? filterCriteria)
         {
-            return m.IsInterface;
+            return m.Namespace is { Length: > 0 }
+                && Unsafe.As<Regex>(filterCriteria).IsMatch(m.Namespace);
         }
 
-        private static bool ValueTypeFilter(Type m, object filter)
+        private static bool WildcardFullNameFilter(Type m, object? filterCriteria)
         {
-            return m.IsValueType;
+            return Unsafe.As<WildcardPattern>(filterCriteria).IsMatch(m.FullName);
         }
 
-        private static bool WildcardNamespaceFilter(Type m, object filterCriteria)
+        private static bool RegexFullNameFilter(Type m, object? filterCriteria)
         {
-            WildcardPattern pattern = filterCriteria as WildcardPattern;
-
-            return pattern == null ? false : pattern.IsMatch(m.Namespace);
+            return Unsafe.As<Regex>(filterCriteria).IsMatch(m.FullName);
         }
 
-        private static bool RegexNamespaceFilter(Type m, object filterCriteria)
+        private static bool ImplementsFilter(Type m, object? filterCriteria)
         {
-            Regex pattern = filterCriteria as Regex;
+            Type implementedInterface = Unsafe.As<Type>(filterCriteria);
+            foreach (Type @interface in m.GetInterfaces())
+            {
+                if (@interface.IsGenericType)
+                {
+                    if (implementedInterface == @interface.GetGenericTypeDefinition())
+                    {
+                        return true;
+                    }
 
-            return !string.IsNullOrWhiteSpace(m.Namespace) &&
-                pattern == null ? false : pattern.IsMatch(m.Namespace);
-        }
+                    continue;
+                }
 
-        private static bool WildcardFullNameFilter(Type m, object filterCriteria)
-        {
-            WildcardPattern pattern = filterCriteria as WildcardPattern;
+                if (implementedInterface.IsGenericType)
+                {
+                    continue;
+                }
 
-            return pattern == null ? false : pattern.IsMatch(m.ToString());
-        }
+                if (@interface == implementedInterface)
+                {
+                    return true;
+                }
+            }
 
-        private static bool RegexFullNameFilter(Type m, object filterCriteria)
-        {
-            Regex pattern = filterCriteria as Regex;
-
-            return pattern == null ? false : pattern.IsMatch(m.ToString());
-        }
-
-        private static bool ParentFilter(Type m, object filterCriteria)
-        {
-            var parent = filterCriteria as Type;
-
-            return parent == null ? false : m.IsSubclassOf(parent);
-        }
-
-        private static bool ImplementsFilter(Type m, object filterCriteria)
-        {
-            var implementedInterface = filterCriteria as Type;
-
-            return m.GetInterfaces().Contains(implementedInterface);
+            return false;
         }
 
         private void ProcessNameParameters()
         {
-            ProcessName(Name, WildcardNameFilter, RegexNameFilter);
-            ProcessName(Namespace, WildcardNamespaceFilter, RegexNamespaceFilter);
-            ProcessName(FullName, WildcardFullNameFilter, RegexFullNameFilter);
+            ProcessName(
+                Name,
+                static (m, fc) => WildcardNameFilter(m, fc),
+                static (m, fc) => RegexNameFilter(m, fc));
+
+            ProcessName(
+                Namespace,
+                static (m, fc) => WildcardNamespaceFilter(m, fc),
+                static (m, fc) => RegexNamespaceFilter(m, fc));
+            ProcessName(
+                FullName,
+                static (m, fc) => WildcardFullNameFilter(m, fc),
+                static (m, fc) => RegexFullNameFilter(m, fc));
         }
 
         private void ProcessAssembly(Assembly assembly)
         {
-            WriteObject(
-                assembly
-                    .GetModules()
-                    .SelectMany(
-                        m =>
-                        {
-                            try
-                            {
-                                return m.FindTypes(AggregateFilter, null);
-                            }
-                            catch (ReflectionTypeLoadException)
-                            {
-                                // TODO: add a debug or verbose message here.
-                                return Enumerable.Empty<Type>();
-                            }
-                        }),
-                enumerateCollection: true);
+            Module[] modules;
+            try
+            {
+                modules = assembly.GetModules();
+            }
+            catch (ReflectionTypeLoadException)
+            {
+                return;
+            }
+
+            foreach (Module module in modules)
+            {
+                try
+                {
+                    module.FindTypes(static (m, fc) => AggregateFilter(m, fc), this);
+                }
+                catch (ReflectionTypeLoadException)
+                {
+                    continue;
+                }
+            }
         }
     }
 }

@@ -1,8 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using ClassExplorer.Signatures;
 
 namespace ClassExplorer.Commands
 {
@@ -14,12 +18,11 @@ namespace ClassExplorer.Commands
         where TMemberType : MemberInfo
     {
         private static readonly PropertyInfo s_invocationInfo =
-            typeof(Cmdlet)
-                .GetProperty(
-                    "MyInvocation",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
+            typeof(Cmdlet).GetProperty(
+                nameof(PSCmdlet.MyInvocation),
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private readonly List<FilterFrame<TMemberType>> _filters = new List<FilterFrame<TMemberType>>();
+        private readonly List<FilterFrame<TMemberType>> _filters = new();
 
         /// <summary>
         /// Gets or sets a ScriptBlock to invoke as a predicate filter.
@@ -27,7 +30,7 @@ namespace ClassExplorer.Commands
         [Parameter(Position = 0, ParameterSetName="ByFilter")]
         [Parameter(ParameterSetName="ByName")]
         [ValidateNotNull]
-        public virtual ScriptBlock FilterScript { get; set; }
+        public virtual ScriptBlock FilterScript { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the name to match.
@@ -36,7 +39,7 @@ namespace ClassExplorer.Commands
         [Parameter(ParameterSetName="ByFilter")]
         [SupportsWildcards]
         [ValidateNotNullOrEmpty]
-        public virtual string Name { get; set; }
+        public virtual string Name { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether to include nonpublic members.
@@ -57,13 +60,16 @@ namespace ClassExplorer.Commands
         /// Gets or sets the object passed from the pipeline.
         /// </summary>
         [Parameter(ValueFromPipeline = true)]
-        public virtual PSObject InputObject { get; set; }
+        public virtual PSObject InputObject { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether the match should be negated.
         /// </summary>
         [Parameter]
         public virtual SwitchParameter Not { get; set; }
+
+        [Parameter]
+        public virtual Hashtable ResolutionMap { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether valid input has been processed from the pipeline.
@@ -78,6 +84,8 @@ namespace ClassExplorer.Commands
             get { return _filters; }
         }
 
+        private bool _hadError;
+
         /// <summary>
         /// A filter that matches the Name property of the object passed using PowerShell wildcard
         /// matching.
@@ -85,11 +93,9 @@ namespace ClassExplorer.Commands
         /// <param name="m">The object to test for a match.</param>
         /// <param name="filterCriteria">The wildcard pattern to test.</param>
         /// <returns>A value indicating whether the object matches.</returns>
-        protected static bool WildcardNameFilter(TMemberType m, object filterCriteria)
+        protected static bool WildcardNameFilter(TMemberType m, object? filterCriteria)
         {
-            WildcardPattern pattern = filterCriteria as WildcardPattern;
-
-            return pattern == null ? false : pattern.IsMatch(m.Name);
+            return Unsafe.As<WildcardPattern>(filterCriteria).IsMatch(m.Name);
         }
 
         /// <summary>
@@ -98,11 +104,9 @@ namespace ClassExplorer.Commands
         /// <param name="m">The object to test for a match.</param>
         /// <param name="filterCriteria">The regex pattern to test.</param>
         /// <returns>A value indicating whether the object matches.</returns>
-        protected static bool RegexNameFilter(TMemberType m, object filterCriteria)
+        protected static bool RegexNameFilter(TMemberType m, object? filterCriteria)
         {
-            Regex pattern = filterCriteria as Regex;
-
-            return pattern == null ? false : pattern.IsMatch(m.Name);
+            return Unsafe.As<Regex>(filterCriteria).IsMatch(m.Name);
         }
 
         /// <summary>
@@ -115,10 +119,38 @@ namespace ClassExplorer.Commands
             // to public APIs and inherit PSCmdlet instead of Cmdlet.  I should have done that in the
             // first place, but that's hindsight for ya.
             ExpectingInput =
-                ((InvocationInfo)s_invocationInfo.GetValue(this)).ExpectingInput ||
+                ((InvocationInfo)s_invocationInfo.GetValue(this)!).ExpectingInput ||
                 InputObject != null;
 
-            InitializeFilters();
+            try
+            {
+                InitializeFilters();
+            }
+            catch (SignatureParseException spe)
+            {
+                ParseException parseException = new(
+                    new[]
+                    {
+                        new ParseError(spe.ErrorPosition, "SignatureParseError", spe.Message)
+                    });
+
+                WriteError(new ErrorRecord(parseException.ErrorRecord, parseException));
+                _hadError = true;
+                return;
+            }
+            catch (PSInvalidCastException ice)
+            {
+                WriteError(new ErrorRecord(ice.ErrorRecord, ice));
+                _hadError = true;
+                return;
+            }
+
+            if (ExpectingInput)
+            {
+                return;
+            }
+
+            OnNoInput();
         }
 
         /// <summary>
@@ -126,7 +158,7 @@ namespace ClassExplorer.Commands
         /// </summary>
         protected override void ProcessRecord()
         {
-            if (InputObject == null) return;
+            if (InputObject == null || _hadError) return;
 
             // Support `Find-X -InputObject $memberList` syntax. This will be less performant but
             // you probably aren't passing the entire AppDomain like this.
@@ -150,19 +182,35 @@ namespace ClassExplorer.Commands
         /// <param name="m">The object to test for a match.</param>
         /// <param name="filterCriteria">The parameter is not used.</param>
         /// <returns>A value indicating whether the object matches.</returns>
-        protected bool AggregateFilter(TMemberType m, object filterCriteria)
+        protected static bool AggregateFilter(TMemberType m, object? fc)
         {
-            if (Filters.Count == 0)
+            var @this = Unsafe.As<FindReflectionObjectCommandBase<TMemberType>>(fc);
+            if (@this.Filters.Count == 0)
             {
-                return true;
+                @this.WriteObject(m);
+                return false;
             }
 
-            foreach (var frame in Filters)
+            foreach (FilterFrame<TMemberType> frame in @this.Filters)
             {
-                if (!frame.Filter(m, frame.Criteria)) return Not.IsPresent;
+                if (frame.Filter(m, frame.Criteria))
+                {
+                    if (@this.Not)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (!@this.Not)
+                {
+                    return false;
+                }
             }
 
-            return !Not.IsPresent;
+            @this.WriteObject(m, enumerateCollection: false);
+            return false;
         }
 
         /// <summary>
@@ -179,9 +227,12 @@ namespace ClassExplorer.Commands
         /// <param name="input">The object from the pipeline.</param>
         protected virtual void ProcessSingleObject(PSObject input)
         {
-            TMemberType member = input.BaseObject as TMemberType;
-            if (member == null || !AggregateFilter(member, null)) return;
-            WriteObject(member);
+            if (input.BaseObject is not TMemberType member)
+            {
+                return;
+            }
+
+            AggregateFilter(member, this);
         }
 
         /// <summary>
@@ -226,7 +277,7 @@ namespace ClassExplorer.Commands
         /// <returns>The created filter frame.</returns>
         protected FilterFrame<TMemberType> CreateFrame(
             FilterFrame<TMemberType>.ReflectionFilter filter,
-            object filterCriteria)
+            object? filterCriteria)
         {
             return new FilterFrame<TMemberType>(filter, filterCriteria);
         }
@@ -258,6 +309,75 @@ namespace ClassExplorer.Commands
             if (value == null) return;
 
             Filters.Add(CreateFrame(filter, value));
+        }
+
+        // private protected static ITypeSignature GetTypeSignature(
+        //     object value,
+        //     Dictionary<string, scriptblock>? resolutionMap)
+        // {
+        //     if (value is ScriptBlock scriptBlock)
+        //     {
+        //         return SignatureParser.Parse(scriptBlock, resolutionMap);
+        //     }
+
+        //     if (value is Type exactType)
+        //     {
+        //         return new ExactTypeSignature(exactType);
+        //     }
+
+        //     string? stringValue = value as string;
+        //     stringValue ??= LanguagePrimitives.ConvertTo<string>(value);
+        //     Type type = LanguagePrimitives.ConvertTo<Type>(stringValue);
+        //     return new ExactTypeSignature(type);
+        // }
+
+        private protected abstract void OnNoInput();
+
+        private protected Dictionary<string, ScriptBlockStringOrType>? InitializeResolutionMap()
+        {
+            if (ResolutionMap is null)
+            {
+                return null;
+            }
+
+            Dictionary<string, ScriptBlockStringOrType> resolutionMap = new(
+                ResolutionMap.Count,
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (object? item in ResolutionMap)
+            {
+                DictionaryEntry entry = (DictionaryEntry)item!;
+                string key = LanguagePrimitives.ConvertTo<string>(entry.Key);
+                if (entry.Value is null)
+                {
+                    WriteError(
+                        new ErrorRecord(
+                            new PSInvalidCastException(
+                                "Cannot convert null to type \"System.Type\"."),
+                            "ResolveMapNullValue",
+                            ErrorCategory.InvalidArgument,
+                            entry));
+                    continue;
+                }
+
+                // if (!LanguagePrimitives.TryConvertTo(entry.Value, out Type value))
+                // {
+                //     WriteError(
+                //         new ErrorRecord(
+                //             new PSInvalidCastException(
+                //                 SR.Format(
+                //                     "Cannot convert the \"{0}\" value of type \"{1}\" to type \"{1}\".",
+                //                     entry.Value,
+                //                     entry.Value.GetType().FullName)),
+                //             "InvalidTypeResolutionMap",
+                //             ErrorCategory.InvalidArgument,
+                //             entry));
+                // }
+
+                resolutionMap[key] = LanguagePrimitives.ConvertTo<ScriptBlockStringOrType>(entry.Value);
+            }
+
+            return resolutionMap;
         }
     }
 }

@@ -3,23 +3,9 @@
     "configurations": [
         {
             "name": ".NET Core Attach",
-            "type": "clr",
+            "type": "coreclr",
             "request": "attach",
-            "processId": "${command:pickProcess}"
+            "justMyCode": false,
         },
-        {
-            "name": ".NET Core Launch (console)",
-            "type": "clr",
-            "request": "launch",
-            "preLaunchTask": "Build",
-            "program": "powershell",
-            "args": [
-                "-NoExit",
-                ". ${workspaceRoot}/debugHarness.ps1"],
-            "cwd": "${workspaceRoot}",
-            "stopAtEntry": false,
-            "console": "externalTerminal"
-        }
     ]
 }
-

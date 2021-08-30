@@ -14,7 +14,7 @@ namespace ClassExplorer
         /// </summary>
         /// <param name="filter">The filter to invoke.</param>
         /// <param name="criteria">The criteria to pass to the filter.</param>
-        public FilterFrame(ReflectionFilter filter, object criteria)
+        public FilterFrame(ReflectionFilter filter, object? criteria)
         {
             Filter = filter;
             Criteria = criteria;
@@ -26,7 +26,7 @@ namespace ClassExplorer
         /// <param name="m">The object to test for a match.</param>
         /// <param name="filterCriteria">The criteria to pass to the filter.</param>
         /// <returns>A value indicating whether the object matches.</returns>
-        public delegate bool ReflectionFilter(TMemberType m, object filterCriteria);
+        public delegate bool ReflectionFilter(TMemberType m, object? filterCriteria);
 
         /// <summary>
         /// Gets the filter to invoke.
@@ -36,6 +36,6 @@ namespace ClassExplorer
         /// <summary>
         /// Gets the criteria to pass to the filter.
         /// </summary>
-        public object Criteria { get; }
+        public object? Criteria { get; }
     }
 }

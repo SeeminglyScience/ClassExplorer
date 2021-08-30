@@ -12,8 +12,7 @@ namespace ClassExplorer
     /// </summary>
     public class AssemblyNameArgumentCompleter : IArgumentCompleter
     {
-        private static Lazy<HashSet<string>> s_cachedAssemblyNames =
-            new Lazy<HashSet<string>>(LoadAssemblyNames);
+        private static readonly Lazy<HashSet<string>> s_cachedAssemblyNames = new(static () => LoadAssemblyNames());
 
         /// <summary>
         /// Called by the PowerShell engine to complete a parameter.
@@ -34,7 +33,7 @@ namespace ClassExplorer
             return s_cachedAssemblyNames.Value
                 .Where(name => name.StartsWith(wordToComplete, StringComparison.CurrentCultureIgnoreCase))
                 .Select(
-                    name => new CompletionResult(
+                    static name => new CompletionResult(
                         name,
                         name,
                         CompletionResultType.ParameterValue,
@@ -43,7 +42,7 @@ namespace ClassExplorer
 
         private static HashSet<string> LoadAssemblyNames()
         {
-            AppDomain.CurrentDomain.AssemblyLoad += AppDomain_OnAssemblyLoad;
+            AppDomain.CurrentDomain.AssemblyLoad += static (s, e) => AppDomain_OnAssemblyLoad(s, e);
             try
             {
                 return
@@ -51,19 +50,25 @@ namespace ClassExplorer
                         AppDomain
                             .CurrentDomain
                             .GetAssemblies()
-                            .Select(assembly => assembly.GetName().Name));
+                            .Select(static assembly => assembly.GetName()?.Name ?? string.Empty));
             }
-            catch (Exception)
+            catch
             {
                 // TODO: Better handling
-                AppDomain.CurrentDomain.AssemblyLoad -= AppDomain_OnAssemblyLoad;
+                AppDomain.CurrentDomain.AssemblyLoad -= static (s, e) => AppDomain_OnAssemblyLoad(s, e);
                 throw;
             }
         }
 
-        private static void AppDomain_OnAssemblyLoad(object source, AssemblyLoadEventArgs e)
+        private static void AppDomain_OnAssemblyLoad(object? source, AssemblyLoadEventArgs e)
         {
-            s_cachedAssemblyNames.Value.Add(e.LoadedAssembly.GetName().Name);
+            string? assemblyName = e.LoadedAssembly.GetName()?.Name ?? null;
+            if (string.IsNullOrEmpty(assemblyName))
+            {
+                return;
+            }
+
+            s_cachedAssemblyNames.Value.Add(assemblyName);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace ClassExplorer
         {
             return TypeArgumentCompleter
                 .GetTypesForCompletion(wordToComplete)
-                .Select(NewResult);
+                .Select(static type => NewResult(type));
         }
 
         private static CompletionResult NewResult(Type type)

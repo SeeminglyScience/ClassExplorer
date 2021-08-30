@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,14 +29,15 @@ namespace ClassExplorer
             CommandAst commandAst,
             IDictionary fakeBoundParameters)
         {
-            return new FindNamespaceCommand() { Name = wordToComplete + "*" }
-                .Invoke<NamespaceInfo>()
-                .Select(
-                    ns => new CompletionResult(
-                        ns.FullName,
-                        ns.FullName,
-                        CompletionResultType.ParameterValue,
-                        ns.FullName));
+            WildcardPattern pattern = WildcardPattern.Get(
+                (wordToComplete ?? string.Empty) + "*",
+                WildcardOptions.IgnoreCase);
+
+            return new FindTypeCommand().Invoke<Type>()
+                .Select(static type => type.Namespace)
+                .Distinct()
+                .Where(ns => ns is not null && pattern.IsMatch(ns))
+                .Select(ns => new CompletionResult(ns, ns, CompletionResultType.ParameterValue, ns));
         }
     }
 }

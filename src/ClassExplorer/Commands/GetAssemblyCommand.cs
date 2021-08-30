@@ -19,17 +19,14 @@ namespace ClassExplorer.Commands
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
         [ArgumentCompleter(typeof(AssemblyNameArgumentCompleter))]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
-        /// The EndProcessing method.
+        /// The BeginProcessing method.
         /// </summary>
-        protected override void EndProcessing()
+        protected override void BeginProcessing()
         {
-            Assembly[] assemblies =
-                AppDomain
-                    .CurrentDomain
-                    .GetAssemblies();
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
             if (string.IsNullOrEmpty(Name))
             {
@@ -37,20 +34,29 @@ namespace ClassExplorer.Commands
                 return;
             }
 
-            var ignoreCase = StringComparison.CurrentCultureIgnoreCase;
-            if (!WildcardPattern.ContainsWildcardCharacters(Name))
+            Func<string, string, WildcardPattern, bool> matcher = Name switch
             {
-                WriteObject(
-                    assemblies.Where(assembly => assembly.GetName().Name.Equals(Name, ignoreCase)),
-                    enumerateCollection: true);
-                return;
+                string name when WildcardPattern.ContainsWildcardCharacters(name)
+                    => (assemblyName, name, pattern) => pattern.IsMatch(assemblyName),
+
+                string name when !name.Any(c => char.IsUpper(c))
+                    => (assemblyName, name, pattern) => name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase),
+
+                string name
+                    => (assemblyName, name, pattern) => name.Equals(assemblyName, StringComparison.Ordinal),
+
+                _ => Unreachable.Code<Func<string, string, WildcardPattern, bool>>(),
+            };
+
+            WildcardPattern pattern = new(Name, WildcardOptions.IgnoreCase);
+            foreach (Assembly assembly in assemblies)
+            {
+                string assemblyName = assembly.GetName()?.Name ?? string.Empty;
+                if (matcher(assemblyName, Name, pattern))
+                {
+                    WriteObject(assembly);
+                }
             }
-
-            var pattern = new WildcardPattern(Name, WildcardOptions.IgnoreCase);
-
-            WriteObject(
-                assemblies.Where(assembly => pattern.IsMatch(assembly.GetName().Name)),
-                enumerateCollection: true);
         }
     }
 }
