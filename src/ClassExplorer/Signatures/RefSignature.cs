@@ -8,7 +8,7 @@ namespace ClassExplorer.Signatures
     {
         internal RefSignature(RefKind kind, ITypeSignature element)
         {
-            Debug.Assert(element is not null);
+            Poly.Assert(element is not null);
             Kind = kind;
             Element = element;
         }

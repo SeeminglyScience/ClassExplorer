@@ -7,7 +7,7 @@ namespace ClassExplorer.Signatures
     {
         internal ExactTypeSignature(Type type)
         {
-            Debug.Assert(type is not null);
+            Poly.Assert(type is not null);
             Type = type;
         }
 

@@ -10,7 +10,7 @@ namespace ClassExplorer.Signatures
 
         internal DecorationSignature(string typeName)
         {
-            Debug.Assert(typeName is not null or { Length: < 1 });
+            Poly.Assert(typeName is not null or { Length: < 1 });
             _typeName = typeName;
         }
 

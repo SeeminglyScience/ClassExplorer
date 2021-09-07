@@ -11,7 +11,7 @@ namespace ClassExplorer.Signatures
             GenericConstraintKind kind,
             ImmutableArray<ITypeSignature> constraints)
         {
-            Debug.Assert(!constraints.IsDefault);
+            Poly.Assert(!constraints.IsDefault);
             Kind = kind;
             Constraints = constraints;
         }
@@ -64,7 +64,7 @@ namespace ClassExplorer.Signatures
 
             if ((Kind & GenericConstraintKind.New) is not 0)
             {
-                if (hasStructConstraint ??= HasStructConstraint(constraints, attributes))
+                if (hasStructConstraint ?? HasStructConstraint(constraints, attributes))
                 {
                     return false;
                 }

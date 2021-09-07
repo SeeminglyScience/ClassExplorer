@@ -7,8 +7,8 @@ namespace ClassExplorer.Signatures
     {
         internal PointerSignature(ITypeSignature element, int count)
         {
-            Debug.Assert(element is not null);
-            Debug.Assert(count is > 0);
+            Poly.Assert(element is not null);
+            Poly.Assert(count is > 0);
             Element = element;
             Count = count;
         }

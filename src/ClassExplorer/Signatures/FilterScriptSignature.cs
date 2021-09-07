@@ -9,7 +9,7 @@ namespace ClassExplorer.Signatures
 
         internal FilterScriptSignature(FilterScriptPipe pipe)
         {
-            Debug.Assert(pipe is not null);
+            Poly.Assert(pipe is not null);
             _pipe = pipe;
         }
 

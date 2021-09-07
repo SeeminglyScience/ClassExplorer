@@ -13,7 +13,7 @@ Gets parameter info from a member.
 ## SYNTAX
 
 ```powershell
-Get-Parameter [-Method <MethodBase>]
+Get-Parameter [-Method <PSObject>]
 ```
 
 ## DESCRIPTION
@@ -27,17 +27,26 @@ The Get-Parameter cmdlet gets parameter info from a member.
 ```powershell
 [powershell] | Find-Member Create | Get-Parameter
 
-#    Member: System.Management.Automation.PowerShell Create(System.Management.Automation.RunspaceMode)
+#    Member: System.Management.Automation.PowerShell
+# Create(System.Management.Automation.RunspaceMode)
 #
 # # ParameterType                  Name                           IsIn  IsOut IsOpt
 # - -------------                  ----                           ----  ----- -----
 # 0 RunspaceMode                   runspace                       False False False
 #
-#    Member: System.Management.Automation.PowerShell Create(System.Management.Automation.Runspaces.InitialSessionState)
+#    Member: System.Management.Automation.PowerShell
+# Create(System.Management.Automation.Runspaces.InitialSessionState)
 #
 # # ParameterType                  Name                           IsIn  IsOut IsOpt
 # - -------------                  ----                           ----  ----- -----
 # 0 InitialSessionState            initialSessionState            False False False
+#
+#    Member: System.Management.Automation.PowerShell
+# Create(System.Management.Automation.Runspaces.Runspace)
+#
+# # ParameterType                  Name                           IsIn  IsOut IsOpt
+# - -------------                  ----                           ----  ----- -----
+# 0 Runspace                       runspace                       False False False
 ```
 
 Get parameters for all overloads of the PowerShell.Create method.

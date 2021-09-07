@@ -178,7 +178,7 @@ namespace ClassExplorer.Signatures
             if (_resolutionMap.TryGetValue(typeName.Name, out ScriptBlockStringOrType? input))
             {
                 argsConsumed = false;
-                return input.Resolve(this);
+                return input.Resolve(this, isForMap: true);
             }
 
             if (IsGenericParameter(typeName, out kind, out position))
@@ -247,14 +247,14 @@ namespace ClassExplorer.Signatures
 
             ITypeSignature Default(TypeName typeName, ReadOnlyCollection<ITypeName> args)
             {
-                ReadOnlySpan<char> name = typeName.Name;
+                ReadOnlySpan<char> name = typeName.Name.AsSpan();
 
                 if (name.Length is <= 1)
                 {
                     return new AssignableTypeSignature(ResolveReflectionType(typeName, args.Count));
                 }
 
-                if (name[0] == 'T' && int.TryParse(name[1..], out int position))
+                if (name[0] == 'T' && Poly.TryParseInt32(name[1..], out int position))
                 {
                     return new GenericParameterSignature(position: position);
                 }
@@ -266,7 +266,7 @@ namespace ClassExplorer.Signatures
 
                 if (name[1] == 'T')
                 {
-                    if (int.TryParse(name[2..], out position))
+                    if (Poly.TryParseInt32(name[2..], out position))
                     {
                         return new GenericParameterSignature(GenericParameterKind.Type, position);
                     }
@@ -279,7 +279,7 @@ namespace ClassExplorer.Signatures
                     return new AssignableTypeSignature(ResolveReflectionType(typeName, args.Count));
                 }
 
-                if (int.TryParse(name[2..], out position))
+                if (Poly.TryParseInt32(name[2..], out position))
                 {
                     return new GenericParameterSignature(GenericParameterKind.Method, position);
                 }
@@ -406,7 +406,7 @@ namespace ClassExplorer.Signatures
             ITypeName tn;
             if (typeName.Value is ScriptBlock scriptBlock)
             {
-                var firstExpression = GetFirstExpression(scriptBlock);
+                ExpressionAst firstExpression = GetFirstExpression(scriptBlock);
                 if (firstExpression is not TypeExpressionAst typeExpression)
                 {
                     ThrowSignatureParseException(
@@ -486,7 +486,7 @@ namespace ClassExplorer.Signatures
                     return type;
                 }
 
-                return new FindTypeCommand() { Name = string.Join('`', fullName, arity), Force = true }
+                return new FindTypeCommand() { Name = Poly.StringJoin('`', fullName, arity), Force = true }
                     .Invoke<Type>()
                     .FirstOrDefault();
             }
@@ -505,7 +505,7 @@ namespace ClassExplorer.Signatures
 
             foreach (string ns in Namespaces)
             {
-                string prefixedNamespace = string.Join('.', ns, fullName);
+                string prefixedNamespace = Poly.StringJoin('.', ns, fullName);
                 foreach (Assembly assembly in assemblies)
                 {
                     Type? type = assembly.GetType(prefixedNamespace);
@@ -521,7 +521,7 @@ namespace ClassExplorer.Signatures
                 return null;
             }
 
-            fullName = string.Join('`', fullName, arity);
+            fullName = Poly.StringJoin('`', fullName, arity);
             goto retry;
         }
 
@@ -586,7 +586,7 @@ namespace ClassExplorer.Signatures
                 return;
             }
 
-            Debug.Fail("Parse should not be passed unexpected type names.");
+            Poly.Fail("Parse should not be passed unexpected type names.");
             definition = null!;
             genericArgs = null!;
         }
@@ -676,21 +676,21 @@ namespace ClassExplorer.Signatures
                 return true;
             }
 
-            ReadOnlySpan<char> span = name;
+            ReadOnlySpan<char> span = name.AsSpan();
 
-            if (span is { Length: > 1 } && span[0] is 'T' && int.TryParse(span[1..], out position))
+            if (span is { Length: > 1 } && span[0] is 'T' && Poly.TryParseInt32(span[1..], out position))
             {
                 kind = GenericParameterKind.Any;
                 return true;
             }
 
-            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'M' && int.TryParse(span[2..], out position))
+            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'M' && Poly.TryParseInt32(span[2..], out position))
             {
                 kind = GenericParameterKind.Method;
                 return true;
             }
 
-            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'T' && int.TryParse(span[2..], out position))
+            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'T' && Poly.TryParseInt32(span[2..], out position))
             {
                 kind = GenericParameterKind.Type;
                 return true;

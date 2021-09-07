@@ -8,8 +8,8 @@ namespace ClassExplorer.Signatures
     {
         internal GenericTypeSignature(ITypeSignature definition, ImmutableArray<ITypeSignature> arguments)
         {
-            Debug.Assert(definition is not null);
-            Debug.Assert(!arguments.IsDefaultOrEmpty);
+            Poly.Assert(definition is not null);
+            Poly.Assert(!arguments.IsDefaultOrEmpty);
             Definition = definition;
             Arguments = arguments;
         }

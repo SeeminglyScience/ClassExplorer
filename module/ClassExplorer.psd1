@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.0'
+ModuleVersion = '2.0.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -36,7 +36,7 @@ Description = 'Quickly search the AppDomain for classes and members.'
 PowerShellVersion = '5.1'
 
 # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
-DotNetFrameworkVersion = '4.5.2'
+DotNetFrameworkVersion = '4.7.1'
 
 # Minimum version of the common language runtime (CLR) required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
 CLRVersion = '4.0'
@@ -48,7 +48,7 @@ ProcessorArchitecture = 'None'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Find-Member', 'Find-Type', 'Find-Namespace', 'Get-Assembly', 'Get-Parameter'
+CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter', 'Format-MemberSignature'
 
 # Variables to export from this module
 VariablesToExport = @()
@@ -57,18 +57,7 @@ VariablesToExport = @()
 AliasesToExport = @()
 
 # List of all files packaged with this module
-FileList = 'ClassExplorer.psd1',
-           'ClassExplorer.psm1',
-           'bin/Core/ClassExplorer.dll',
-           'bin/Core/ClassExplorer.xml',
-           'bin/Core/ClassExplorer.pdb',
-           'bin/Core/ClassExplorer.deps.json',
-           'bin/Desktop/ClassExplorer.dll',
-           'bin/Desktop/ClassExplorer.xml',
-           'bin/Desktop/ClassExplorer.pdb',
-           'en-US/ClassExplorer.dll-Help.xml',
-           'xml/System.Reflection.MemberInfo.format.ps1xml',
-           'xml/System.Reflection.ParameterInfo.format.ps1xml'
+# FileList = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -89,38 +78,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-# Version 1.1.0
-
-## Find-Namespace Cmdlet
-
-Added the `Find-Namespace` cmdlet for searching the AppDomain for specific namespaces.  This is
-paticularly useful when exploring a new assembly to get a quick idea what's available. The namespace
-objects returned from this cmdlet can be piped into `Find-Type` or `Find-Member`.
-
-## More argument completion
-
-Namespace parameters for `Find-Namespace` and `Find-Type` now have tab completion. The `Name` parameter
-for `Get-Assembly` will now also complete assembly names.
-
-## Not parameter
-
-The cmdlets `Find-Namespace`, `Find-Type`, and `Find-Member` now have a `Not` parameter to negate the
-search criteria. This makes chaining the commands to filter results a lot easier. Here's a basic example.
-
-```powershell
-Find-Namespace Automation | Find-Member -Static | Find-Member -MemberType Field -Not
-```
-
-## Fixes
-
-- The `Find-*` cmdlets no longer return all matches in the AppDomain if passed null pipeline input
-
-- Added support for explicitly specifying the `InputObject` parameter from pipeline position 0
-
-- `Find-Type` no longer throws when the `Namespace` parameter is specified with the `RegularExpression`
-  switch parameter
-
-- Various build and test fixes
+- Added type signatures, a custom query language built into type expressions. See https://bit.ly/about-type-signatures
+- A lot of fixes and tweaks
+- Removed Find-Namespace command
 '@
 
     } # End of PSData hashtable
@@ -128,6 +88,3 @@ Find-Namespace Automation | Find-Member -Static | Find-Member -MemberType Field 
 } # End of PrivateData hashtable
 
 }
-
-
-

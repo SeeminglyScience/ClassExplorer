@@ -1,6 +1,5 @@
 using System.Management.Automation;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace ClassExplorer.Commands
 {

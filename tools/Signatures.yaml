@@ -1,0 +1,499 @@
+short: CLR query language built into type expressions.
+long: "Type signatures are a custom query language built into PowerShell type
+    expressions to enable complex searches of the environment. Originally built
+    to more easily search for generic types, but allows for very precise
+    exploration of currently loaded assemblies."
+keywords:
+  - header: "`assignable`"
+    description: "
+      By default all type expressions are implicitly interpreted as assignable. Meaning if you enter `[IO.FileSystemInfo]`
+      then it will also match `[IO.FileInfo]` and `[IO.DirectoryInfo]`."
+    examples:
+      - syntax:
+        - Find-Member -ParameterType { [IO.FileSystemInfo] }
+        - "# You can also be explicit about assignable:"
+        - Find-Member -ParameterType { [assignable[IO.FileSystemInfo]] }
+        signatures:
+          - match: true
+            sig: void Example(FileInfo file);
+          - match: true
+            sig: void Example(FileSystemInfo fso);
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`exact`"
+    description: Sometimes you may want to only match a specific type and not any of it's subclasses or implementees.
+    examples:
+      - syntax: Find-Member -ParameterType { [exact[IO.FileSystemInfo]] }
+        signatures:
+          - match: true
+            sig: void Example(FileSystemInfo fso);
+          - match: false
+            sig: void Example(FileInfo file);
+
+  - header: "`contains`"
+    description: Recurses a type's elements and generic arguments for a match.
+    examples:
+      - syntax: Find-Member -ParameterType { [contains[int]] }
+        signatures:
+          - match: true
+            sig: void Example(int value);
+          - match: true
+            sig: void Example(IList<int[]> values);
+          - match: false
+            sig: void Example(IList<long> values);
+      - syntax: Find-Member -ParameterType { [contains[exact[IO.FileSystemInfo]]] }
+        signatures:
+          - match: true
+            sig: void Example(IList<FileSystemInfo> fsos);
+          - match: false
+            sig: void Example(IList<FileInfo> files);
+
+  - header: "`any`"
+    description: "Matches anything. It's main purpose is as a stand in for generic
+      arguments e.g. `[Span[any]]` to match any type of `Span<>`."
+    examples:
+      - syntax: Find-Member -ParameterType { [Span[any]] }
+        signatures:
+          - match: true
+            sig: void Example(Span<int> values);
+          - match: true
+            sig: void Example(Span<DateTime> dates);
+          - match: false
+            sig: void Example(ReadOnlySpan<int> values);
+      - syntax: Find-Member -ParameterType { [any] }
+        signatures:
+          - match: true
+            sig: all the things
+
+  - header: "`ref`"
+    description: An argument passed by `ref`, excludes `out` and `in`.
+    examples:
+      - syntax:
+        - Find-Member -ParameterType { [ref] [any] }
+        - Find-Member -ParameterType { [ref[any]] }
+        signatures:
+          - match: true
+            sig: void Example(ref int value);
+          - match: true
+            sig: void Example(ref string value);
+          - match: false
+            sig: void Example(out long value);
+      - syntax: Find-Member -ParameterType { [ref] [DateTime] }
+        signatures:
+          - match: true
+            sig: void Example(ref DateTime date);
+          - match: false
+            sig: void Example(in DateTime date);
+          - match: false
+            sig: void Example(out int value);
+
+  - header: "`out`"
+    description: An argument passed by `out`, excludes standard `ref` and `in`.
+    examples:
+      - syntax:
+        - Find-Member -ParameterType { [out] [any] }
+        - Find-Member -ParameterType { [out[any]] }
+        signatures:
+          - match: true
+            sig: void Example(out int value);
+          - match: true
+            sig: void Example(out string value);
+          - match: false
+            sig: void Example(ref long value);
+      - syntax: Find-Member -ParameterType { [out] [DateTime] }
+        signatures:
+          - match: true
+            sig: void Example(out DateTime date);
+          - match: false
+            sig: void Example(in DateTime date);
+          - match: false
+            sig: void Example(ref int value);
+
+  - header: "`in`"
+    description: An argument passed by `in`, excludes standard `ref` and `out`.
+    examples:
+      - syntax:
+        - Find-Member -ParameterType { [in] [any] }
+        - Find-Member -ParameterType { [in[any]] }
+        signatures:
+          - match: true
+            sig: void Example(out int value);
+          - match: true
+            sig: void Example(out string value);
+          - match: false
+            sig: void Example(ref long value);
+      - syntax: Find-Member -ReturnType { [in] [any] }
+        signatures:
+          - match: true
+            sig: ref readonly int Example();
+          - match: true
+            sig: ref readonly string Example();
+          - match: false
+            sig: ref int Example();
+
+  - header: "`anyof`"
+    description: Return true if **any** of it's arguments match.
+    examples:
+      - syntax: Find-Member -ParameterType { [anyof[int, double]] }
+        signatures:
+          - match: true
+            sig: void Example(int value);
+          - match: true
+            sig: void Example(double value);
+          - match: false
+            sig: void Example(long value);
+      - syntax: Find-Member -ParameterType { [anyof[bool, contains[int]]] }
+        signatures:
+          - match: true
+            sig: void Example(bool value);
+          - match: true
+            sig: void Example(IList<int> values);
+          - match: false
+            sig: void Example(long value);
+
+  - header: "`allof`"
+    description: Return true if **all** of it's arguments match.
+    examples:
+      - syntax: Find-Member -ParameterType { [allof[primitive, [not[anyof[bool, char]]]]] }
+        signatures:
+          - match: true
+            sig: void Example(int value);
+          - match: true
+            sig: void Example(long value);
+          - match: false
+            sig: void Example(bool value);
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`not`"
+    description: Returns true if it's argument does **not** match.
+    examples:
+      - syntax: Find-Member -ParameterType { [not[int]] }
+        signatures:
+          - match: true
+            sig: void Example(bool value);
+          - match: false
+            sig: void Example(int value);
+
+      - syntax: Find-Member -ParameterType { [not[contains[int]]] }
+        signatures:
+          - match: true
+            sig: void Example(IList<bool> values);
+          - match: false
+            sig: void Example(IList<int> values);
+          - match: false
+            sig: void Example(int value);
+
+  - header: "`class`"
+    description: Only match concrete classes (not an interface or `ValueType`).
+    examples:
+      - syntax: Find-Member -ParameterType { [class] }
+        signatures:
+          - match: true
+            sig: void Example(object value);
+          - match: false
+            sig: void Example(int value);
+
+      - syntax: Find-Member -ParameterType { [Collections.Generic.List[class]] }
+        signatures:
+          - match: true
+            sig: void Example(List<string> values);
+          - match: false
+            sig: void Example(List<int> values);
+          - match: false
+            sig: void Example(List<IDisposable> values);
+
+  - header: "`struct`"
+    description: Only match `ValueType` types that are not exactly `ValueType` or `Enum`.
+    examples:
+      - syntax: Find-Member -ParameterType { [struct] }
+        signatures:
+          - match: true
+            sig: void Example(int value);
+          - match: true
+            sig: void Example(DateTime date);
+          - match: false
+            sig: void Example(object obj);
+          - match: false
+            sig: void Example(Enum value);
+          - match: false
+            sig: void Example(ValueType value);
+
+      - syntax: Find-Member -ParameterType { [Collections.Generic.List[class]] }
+        signatures:
+          - match: true
+            sig: void Example(List<string> values);
+          - match: false
+            sig: void Example(List<int> values);
+          - match: false
+            sig: void Example(List<DateTime> values);
+
+  - header: "`record`"
+    description: Only match types defined with the `record` keyword in C#.
+    examples:
+      - syntax: Find-Member -ParameterType { [record] }
+        signatures:
+          - match: true
+            sig: "public record Person(string Name);\n\n
+
+              void Example(Person person);"
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`readonlystruct`"
+    description: Only match structs defined with the `readonly` keyword in C#.
+    examples:
+      - syntax: Find-Member -ParameterType { [readonlystruct] }
+        signatures:
+          - match: true
+            sig: "
+              public readonly struct Person\n
+              {\n
+                \tpublic readonly string Name;\n
+              }\n\n
+
+              void Example(Person person);"
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`readonlyrefstruct`"
+    description: Only match structs defined with the `readonly` and `ref` keywords in C#.
+    examples:
+      - syntax: Find-Member -ParameterType { [readonlyrefstruct] }
+        signatures:
+          - match: true
+            sig: "
+              public readonly ref struct Person\n
+              {\n
+                \tpublic readonly ReadOnlySpan<char> Name;\n
+              }\n\n
+
+              void Example(Person person);"
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`refstruct`"
+    description: Only match structs defined with the `ref` keyword in C#.
+    examples:
+      - syntax: Find-Member -ParameterType { [refstruct] }
+        signatures:
+          - match: true
+            sig: "
+              public ref struct Person\n
+              {\n
+                \tpublic ReadOnlySpan<char> Name;\n
+              }\n\n
+
+              void Example(Person person);"
+          - match: false
+            sig: void Example(object obj);
+
+  - header: "`enum`"
+    description: Only concrete `Enum` types.
+    examples:
+      - syntax: Find-Member -ParameterType { [enum] }
+        signatures:
+          - match: true
+            sig: void Example(BindingFlags flags);
+          - match: false
+            sig: void Example(Enum value);
+          - match: false
+            sig: void Example(object value);
+
+  - header: "`referencetype`"
+    description: Any reference type including classes, interfaces, and boxed value types.
+    examples:
+      - syntax: Find-Member -ParameterType { [referencetype] }
+        signatures:
+          - match: true
+            sig: void Example(object value);
+          - match: true
+            sig: void Example(Enum value);
+          - match: false
+            sig: void Example(int value);
+
+  - header: "Pointers"
+    description: References raw pointer types replacing C#'s `*` symbol with `+`.
+    examples:
+      - syntax: Find-Member -ParameterType { [void++] }
+        signatures:
+          - match: true
+            sig: void Example(void** ptr);
+          - match: false
+            sig: void Example(void* ptr);
+          - match: false
+            sig: void Example(int* ptr);
+          - match: false
+            sig: void Example(object value);
+
+  - header: "Generic Parameters (`T`, `TT`, and `TM`)"
+    description: "References a generic parameter. `T` matches any kind, `TT` matches generic
+      type parameters and `TM` matches generic method parameters. Optionally add a number to
+      indicate generic parameter position (e.g. `T0`). Add generic arguments to indicate required
+      generic constraints (e.g. `[T[unmanaged]]`)."
+    examples:
+      - syntax: Find-Member -ParameterType { [T] }
+        signatures:
+          - match: true
+            sig: void Example(T value);
+      - syntax: Find-Member -ParameterType { [TM] }
+        signatures:
+          - match: true
+            sig: void Example<TM>(TM value);
+          - match: false
+            sig: void Example(T value);
+      - syntax: Find-Member -ParameterType { [TM0] }
+        signatures:
+          - match: true
+            sig: void Example<TM>(TM value);
+          - match: false
+            sig: TM0 Example<TM0, TM1>(TM0 value);
+      - syntax: Find-Member -ParameterType { [T[unmanaged]] }
+        signatures:
+          - match: true
+            sig: "
+            public class MyClass<T> where T : unmanaged\n
+            { }\n\n
+
+            void Example(T value);"
+      - syntax: Find-Member -ParameterType { [T[new]] }
+        signatures:
+          - match: true
+            sig: "
+            public class MyClass<T> where T : new()\n
+            { }\n\n
+
+            void Example(T value);"
+      - syntax: Find-Member -ParameterType { [T[Collections.IList]] }
+        signatures:
+          - match: true
+            sig: "
+            public class MyClass<T> where T : IList\n
+            { }\n\n
+
+            void Example(T value);"
+      - syntax: Find-Member -ParameterType { [T[struct]] }
+        signatures:
+          - match: true
+            sig: "
+            public class MyClass<T> where T : struct\n
+            { }\n\n
+
+            void Example(T value);"
+      - syntax: Find-Member -ParameterType { [T[class]] }
+        signatures:
+          - match: true
+            sig: "
+            public class MyClass<T> where T : class\n
+            { }\n\n
+
+            void Example(T value);"
+
+  - header: "`primitive`"
+    description: Matches bool, byte, char, double, short, int, long, IntPtr, sbyte, float, ushort, uint, ulong, or UIntPtr.
+    examples:
+      - syntax: Find-Member -ParameterType { [primitive] }
+        signatures:
+          - match: true
+            sig: void Example(char value);
+          - match: true
+            sig: void Example(float value);
+          - match: false
+            sig: void Example(string value);
+
+  - header: "`interface`"
+    description: Matches only interfaces, does not match concrete types.
+    examples:
+      - syntax: Find-Member -ParameterType { [interface] }
+        signatures:
+          - match: true
+            sig: void Example(IDisposable disposable);
+          - match: false
+            sig: void Example(object obj);
+          - match: false
+            sig: void Example(int value);
+
+  - header: "`decoration`, `hasattr`"
+    description: Matches parameters or types decorated with this attribute.
+    examples:
+      - syntax: Find-Member -ParameterType { [hasattr[ParamArrayAttribute]] }
+        signatures:
+          - match: true
+            sig: void Example(params object[] args);
+          - match: false
+            sig: void Example(object[] args);
+      - syntax: "Find-Member -ParameterType {\n
+          \t[hasattr[Management.Automation.CmdletAttribute]]\n
+        }"
+        signatures:
+          - match: true
+            sig: void Example(OutStringCommand command);
+
+  - header: "`generic`"
+    description: Provides a way to specify a signature that takes arguments for a generic type definition.
+    examples:
+      - syntax: "Find-Member -ParameterType {\n
+          \t[generic[exact[Collections.Generic.IList`1], args[struct]]]\n
+        }"
+        signatures:
+          - match: true
+            sig: void Example(IList<DateTime> values);
+          - match: false
+            sig: void Example(List<DateTime> values);
+          - match: false
+            sig: void Example(IList<object> values);
+
+  - header: "Resolution Maps"
+    description: You can provide a hashtable of `name` to `Signature`/`Type` to the `-ResolutionMap` parameter to create your own keywords or override type resolution.
+    examples:
+      - syntax:
+        - "$map = @{\n
+          \tnumber = {\n
+            \t\t[anyof[bigint, [allof[primitive, [not[anyof[bool, char]]]]]]]\n
+          \t}\n\n
+          \tanymemory = {\n
+            \t\t[anyof[Span[any], ReadOnlySpan[any], Memory[any], ReadOnlyMemory[any]]]\n
+          \t}\n\n
+          \tLocalRunspace = (Find-Type LocalRunspace -Force)\n
+        }\n"
+        - "Find-Type -Force -ResolutionMap $map -Signature {\n
+          \t[anyof[number, anymemory, LocalRunspace]]\n
+        }"
+        signatures:
+          - match: true
+            sig: public struct Byte { }
+          - match: true
+            sig: public struct Double { }
+          - match: true
+            sig: public struct Int16 { }
+          - match: true
+            sig: public struct Int32 { }
+          - match: true
+            sig: public struct Int64 { }
+          - match: true
+            sig: public struct IntPtr { }
+          - match: true
+            sig: public struct Memory<T> { }
+          - match: true
+            sig: public struct ReadOnlyMemory<T> { }
+          - match: true
+            sig: public struct ReadOnlySpan<T> { }
+          - match: true
+            sig: public struct SByte { }
+          - match: true
+            sig: public struct Single { }
+          - match: true
+            sig: public struct Span<T> { }
+          - match: true
+            sig: public struct UInt16 { }
+          - match: true
+            sig: public struct UInt32 { }
+          - match: true
+            sig: public struct UInt64 { }
+          - match: true
+            sig: public struct UIntPtr { }
+          - match: true
+            sig: private class LocalRunspace { }
+          - match: true
+            sig: public struct BigInteger { }

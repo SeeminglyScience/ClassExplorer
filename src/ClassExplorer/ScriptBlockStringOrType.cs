@@ -1,5 +1,6 @@
 using System;
 using System.Management.Automation;
+
 using ClassExplorer.Signatures;
 
 namespace ClassExplorer
@@ -18,7 +19,7 @@ namespace ClassExplorer
 
         internal object? Value { get; }
 
-        internal ITypeSignature Resolve(SignatureParser parser)
+        internal ITypeSignature Resolve(SignatureParser parser, bool isForMap = false)
         {
             if (_cachedType is not null)
             {
@@ -32,13 +33,23 @@ namespace ClassExplorer
 
             if (Value is Type exactType)
             {
-                return _cachedType = new AssignableTypeSignature(exactType);
+                if (isForMap)
+                {
+                    return _cachedType = new AssignableTypeSignature(exactType);
+                }
+
+                return _cachedType = new ContainsSignature(new AssignableTypeSignature(exactType));
             }
 
             if (Value is string name)
             {
                 Type type = LanguagePrimitives.ConvertTo<Type>(name);
-                return _cachedType = new AssignableTypeSignature(type);
+                if (isForMap)
+                {
+                    return _cachedType = new AssignableTypeSignature(type);
+                }
+
+                return _cachedType = new ContainsSignature(new AssignableTypeSignature(type));
             }
 
             return Unreachable.Code<ITypeSignature>();

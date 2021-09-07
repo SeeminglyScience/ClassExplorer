@@ -1,9 +1,69 @@
+function compile {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string[]] $Member,
+
+        [Parameter()]
+        [string[]] $Using,
+
+        [Parameter()]
+        [switch] $Unsafe
+    )
+    end {
+        $splat = @{}
+        if ($Unsafe.IsPresent) {
+            if ($PSVersionTable.PSVersion.Major -gt 5) {
+                $splat['CompilerOptions'] = '-unsafe'
+                $splat['IgnoreWarnings'] = $true
+            } else {
+                $options = [System.CodeDom.Compiler.CompilerParameters]::new()
+                $options.TreatWarningsAsErrors = $false
+                $options.CompilerOptions = '/unsafe'
+
+                $splat['CompilerParameters'] = $options
+            }
+        }
+
+        $usings = foreach ($u in $Using) {
+            "using $u;"
+        }
+
+        return Add-Type @splat -WarningAction Ignore -PassThru -TypeDefinition ('
+            {0}
+
+            namespace ClassExplorer.Tests.{1}
+            {{
+                public class __Test_Type_{2}
+                {{
+                    {3}
+                }}
+            }}' -f ($usings -join [Environment]::NewLine),
+                ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentBlock.Name -replace ' '),
+                $PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentTest.Name,
+                ($Member -join [Environment]::NewLine))
+    }
+}
+
+function Complete {
+    param([string] $Expression)
+    end {
+        return [System.Management.Automation.CommandCompletion]::
+            CompleteInput(
+                $Expression,
+                $Expression.Length,
+                $null).
+                CompletionMatches
+    }
+}
+
 function BeTrueForAll {
     [CmdletBinding()]
     param(
         $ActualValue,
         [scriptblock] $TestScript,
-        [switch] $Negate
+        [switch] $Negate,
+        [object] $CallerSessionState
     )
     end {
         foreach ($value in $ActualValue) {
@@ -46,7 +106,8 @@ function BeTrueForAny {
     param(
         $ActualValue,
         [scriptblock] $TestScript,
-        [switch] $Negate
+        [switch] $Negate,
+        [object] $CallerSessionState
     )
     end {
         $succeeded = $false
@@ -93,7 +154,8 @@ function HaveProperty {
         $ActualValue,
         [string] $PropertyName,
         $WithValue,
-        [switch] $Negate
+        [switch] $Negate,
+        [object] $CallerSessionState
     )
     end {
         $shouldTestValue = $PSBoundParameters.ContainsKey('WithValue')
@@ -168,6 +230,55 @@ function HaveProperty {
     }
 }
 
+function BeTheseMembers {
+    [CmdletBinding()]
+    param(
+        $ActualValue,
+        [string[]] $Expected,
+        [switch] $Negate,
+        [object] $CallerSessionState
+    )
+    end {
+        $actualNames = [string[]](
+            $ActualValue.Name |
+                Where-Object { $_ -notin 'Equals', 'GetHashCode', 'ToString', 'ReferenceEquals' } |
+                Sort-Object)
+        $expectedNames = [string[]]($Expected | Sort-Object)
+
+        if ($Negate.IsPresent) {
+            $failureMessage =
+                'Expected @({0}) to be different from the actual value, but got the same value.' -f (
+                    $expectedNames -join ', ')
+        } else {
+            $failureMessage = 'Expected @({0}) but got @({1}).' -f (
+                ($expectedNames -join ', '),
+                ($actualNames -join ', '))
+        }
+
+        $result = [PSCustomObject]@{
+            Succeeded = $true
+            FailureMessage = $failureMessage
+        }
+
+        if ($actualNames.Length -ne $expectedNames.Length) {
+            $result.Succeeded = $false
+            return $result
+        }
+
+        for ($i = 0; $i -lt $actualNames.Length; $i++) {
+            if ($expectedNames[$i] -eq $actualNames[$i]) {
+                continue
+            }
+
+            $result.Succeeded = $true
+            return $result
+        }
+
+        return $result
+    }
+}
+
 Add-AssertionOperator -Name BeTrueForAll -Test $function:BeTrueForAll -Alias All -SupportsArrayInput
 Add-AssertionOperator -Name BeTrueForAny -Test $function:BeTrueForAny -Alias Any -SupportsArrayInput
+Add-AssertionOperator -Name BeTheseMembers -Test $function:BeTheseMembers -SupportsArrayInput
 Add-AssertionOperator -Name HaveProperty -Test $function:HaveProperty

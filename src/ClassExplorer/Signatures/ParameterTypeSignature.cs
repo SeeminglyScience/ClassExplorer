@@ -8,7 +8,7 @@ namespace ClassExplorer.Signatures
     {
         internal ParameterTypeSignature(ITypeSignature parameterType)
         {
-            Debug.Assert(parameterType is not null);
+            Poly.Assert(parameterType is not null);
             ParameterType = parameterType;
         }
 

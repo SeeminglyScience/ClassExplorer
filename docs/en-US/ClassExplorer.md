@@ -18,10 +18,6 @@ ClassExplorer is a PowerShell module that enables quickly searching the AppDomai
 
 The Find-Member cmdlet searches the AppDomain for members that fit specified criteria. You can search the entire AppDomain, search in specific types, or filter an existing list of members.
 
-### [Find-Namespace](Find-Namespace.md)
-
-The Find-Namespace cmdlet searches the AppDomain for namespaces that fit a specific criteria. You can search the entire AppDomain, specific assemblies, or get the namespace of specific types or members.
-
 ### [Find-Type](Find-Type.md)
 
 The Find-Type cmdlet searches the AppDomain for .NET classes that match specified criteria.
@@ -33,3 +29,7 @@ The Get-Assembly cmdlet gets assemblies loaded in the AppDomain.
 ### [Get-Parameter](Get-Parameter.md)
 
 The Get-Parameter cmdlet gets parameter info from a member.
+
+### [Format-MemberSignature](Format-MemberSignature.md)
+
+The Format-MemberSignature cmdlet uses the input reflection objects to generate reference library style C# pseudo code. Use this cmdlet to get a more in depth look at specific member including attribute decorations, generic type constraints, and more.

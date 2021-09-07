@@ -12,12 +12,7 @@ namespace ClassExplorer.Signatures
 
         public static bool IsDefined(this MemberInfo member, string fullName)
         {
-            Type? type = member.Module.GetType(fullName);
-            if (type is null)
-            {
-                type = Type.GetType(fullName);
-            }
-
+            Type? type = member.Module.GetType(fullName) ?? Type.GetType(fullName);
             if (type is null)
             {
                 return false;
@@ -28,11 +23,7 @@ namespace ClassExplorer.Signatures
 
         public static bool IsDefined(this ParameterInfo parameter, string fullName)
         {
-            Type? type = parameter.Member.Module.GetType(fullName);
-            if (type is null)
-            {
-                type = Type.GetType(fullName);
-            }
+            Type? type = parameter.Member.Module.GetType(fullName) ?? Type.GetType(fullName);
 
             if (type is null)
             {

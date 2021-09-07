@@ -14,8 +14,8 @@ namespace ClassExplorer.Signatures
 
         internal NameWildcardSignature(WildcardPattern pattern, string stringPattern)
         {
-            Debug.Assert(pattern is not null);
-            Debug.Assert(stringPattern is not null);
+            Poly.Assert(pattern is not null);
+            Poly.Assert(stringPattern is not null);
             Pattern = pattern;
             _pattern = stringPattern;
             if (_pattern is "*")

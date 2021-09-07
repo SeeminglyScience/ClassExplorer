@@ -22,8 +22,6 @@ namespace ClassExplorer.Commands
                 nameof(PSCmdlet.MyInvocation),
                 BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-        private readonly List<FilterFrame<TMemberType>> _filters = new();
-
         /// <summary>
         /// Gets or sets a ScriptBlock to invoke as a predicate filter.
         /// </summary>
@@ -79,10 +77,7 @@ namespace ClassExplorer.Commands
         /// <summary>
         /// Gets a list of filters to use for matching.
         /// </summary>
-        protected List<FilterFrame<TMemberType>> Filters
-        {
-            get { return _filters; }
-        }
+        protected List<FilterFrame<TMemberType>> Filters { get; } = new();
 
         private bool _hadError;
 

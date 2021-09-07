@@ -8,7 +8,7 @@ namespace ClassExplorer.Signatures
     {
         internal ReturnTypeSignature(ITypeSignature returnType)
         {
-            Debug.Assert(returnType is not null);
+            Poly.Assert(returnType is not null);
             ReturnType = returnType;
         }
 

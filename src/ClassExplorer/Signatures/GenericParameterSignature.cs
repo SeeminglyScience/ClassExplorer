@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Metadata;
 
 namespace ClassExplorer.Signatures
 {
@@ -30,17 +29,17 @@ namespace ClassExplorer.Signatures
                 return false;
             }
 
-            if (Kind is GenericParameterKind.Method && !type.IsGenericMethodParameter)
+            if (Kind is GenericParameterKind.Method && !Poly.IsGenericMethodParameter(type))
             {
                 return false;
             }
 
-            if (Kind is GenericParameterKind.Type && !type.IsGenericTypeParameter)
+            if (Kind is GenericParameterKind.Type && !Poly.IsGenericTypeParameter(type))
             {
                 return false;
             }
 
-            if (Constraints is not null && !Constraints.IsMatch(type))
+            if (Constraints?.IsMatch(type) is false)
             {
                 return false;
             }

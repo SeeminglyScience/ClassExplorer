@@ -8,7 +8,7 @@ namespace ClassExplorer.Signatures
     {
         internal ContainsSignature(ITypeSignature signature)
         {
-            Debug.Assert(signature is not null);
+            Poly.Assert(signature is not null);
             Signature = signature;
         }
 

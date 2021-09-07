@@ -15,22 +15,18 @@ Find properties, methods, fields, etc that fit specific criteria.
 ### ByFilter (Default)
 
 ```powershell
-Find-Member [-ParameterType <Type>] [-ReturnType <Type>] [-IncludeSpecialName] [-MemberType <MemberTypes>]
- [-Static] [-Instance] [-Abstract] [-Virtual] [[-FilterScript] <ScriptBlock>] [-Name <String>] [-Force]
- [-RegularExpression] [-InputObject <PSObject>]
+Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Member [-ParameterType <Type>] [-ReturnType <Type>] [-IncludeSpecialName] [-MemberType <MemberTypes>]
- [-Static] [-Instance] [-Abstract] [-Virtual] [-FilterScript <ScriptBlock>] [[-Name] <String>] [-Force]
- [-RegularExpression] [-InputObject <PSObject>]
+Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-The Find-Member cmdlet searches the AppDomain for members that fit specified criteria. You can search the entire AppDomain, search in specific types, or filter an existing list of members.
+The Find-Member cmdlet searches the environment for members that fit specified criteria. You can search in any loaded assemblies, specific types, or filter an existing list of members.
 
 ## EXAMPLES
 
@@ -43,12 +39,11 @@ Find-Member GetPowerShell
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Object[] args)
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Boolean isTrustedInput, Obj...
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictionary`2 variables, Obj...
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictionary`2 variables, Dic...
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictionary`2 variables, Dic...
-
+# GetPowerShell        Method       False    PowerShell GetPowerShell(Object[]…
+# GetPowerShell        Method       False    PowerShell GetPowerShell(Boolean …
+# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
+# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
+# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
 ```
 
 Find all members in the AppDomain with the name "GetPowerShell"
@@ -56,53 +51,63 @@ Find all members in the AppDomain with the name "GetPowerShell"
 ### -------------------------- EXAMPLE 2 --------------------------
 
 ```powershell
-Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
+[System.IO.Stream] | Find-Member -ParameterType { [anyof[Span[any], Memory[any]]] }
 
-#    ReflectedType: System.Management.Automation.CommandCompletion
+#    ReflectedType: System.IO.Stream
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# MapStringInputToP... Method        True    Tuple`3 MapStringInputToParsedInput(String input, In...
-#
+# ReadAsync            Method       False    ValueTask`1 ReadAsync(Memory`1 bu…
+# Read                 Method       False    Int32 Read(Span`1 buffer)
+```
+
+Find all members in the AppDomain with the name "GetPowerShell"
+
+### -------------------------- EXAMPLE 3 --------------------------
+
+```powershell
+Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
+
 #    ReflectedType: System.Management.Automation.Language.UsingExpressionAst
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# ExtractUsingVariable Method        True    VariableExpressionAst ExtractUsingVariable(UsingExpr...
+# ExtractUsingVariable Method        True    VariableExpressionAst ExtractUsin…
 #
 #    ReflectedType: System.Management.Automation.Language.Parser
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# ParseFile            Method        True    ScriptBlockAst ParseFile(String fileName, Token[]& t...
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String input, Token[]& tok...
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String input, String fileN...
+# ParseFile            Method        True    ScriptBlockAst ParseFile(String f…
+# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
+# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
 ```
 
 Find all static members in the AppDomain that return any type of AST.
 
-### -------------------------- EXAMPLE 3 --------------------------
+### -------------------------- EXAMPLE 4 --------------------------
 
 ```powershell
 Find-Member -ParameterType runspace -Virtual
 
-#    ReflectedType: System.Management.Automation.Host.IHostSupportsInteractiveSession
+#    ReflectedType:
+# System.Management.Automation.Host.IHostSupportsInteractiveSession
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# PushRunspace         Method       False    Void PushRunspace(Runspace runspace)
+# PushRunspace         Method       False    Void PushRunspace(Runspace runspa…
 #
-#
-#    ReflectedType: Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
+#    ReflectedType:
+# Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# RunspaceIsRemote     Method       False    Boolean RunspaceIsRemote(Runspace runspace)
+# RunspaceIsRemote     Method       False    Boolean RunspaceIsRemote(Runspace…
 ```
 
 Find all virtual members in the AppDomain that take any runspace type as a parameter.
 
-### -------------------------- EXAMPLE 4 --------------------------
+### -------------------------- EXAMPLE 5 --------------------------
 
 ```powershell
 Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
@@ -111,15 +116,15 @@ Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 #
 # Name                 MemberType  IsStatic  Definition
 # ----                 ----------  --------  ----------
-# ParseFile            Method        True    ScriptBlockAst ParseFile(String fileName, Token[]& ...
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String input, Token[]& to...
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String input, String file...
+# ParseFile            Method        True    ScriptBlockAst ParseFile(String f…
+# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
+# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
 ```
 
 Find all members that start with the word Parse and take Token as a parameter. This example also
 demonstrates how this will even match the element of a type that is both an array and ByRef type.
 
-### -------------------------- EXAMPLE 5 --------------------------
+### -------------------------- EXAMPLE 6 --------------------------
 
 ```powershell
 $members = Find-Member -Force

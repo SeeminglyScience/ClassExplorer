@@ -63,12 +63,12 @@ namespace ClassExplorer
         private static void AppDomain_OnAssemblyLoad(object? source, AssemblyLoadEventArgs e)
         {
             string? assemblyName = e.LoadedAssembly.GetName()?.Name ?? null;
-            if (string.IsNullOrEmpty(assemblyName))
+            if (Poly.IsStringNullOrEmpty(assemblyName))
             {
                 return;
             }
 
-            s_cachedAssemblyNames.Value.Add(assemblyName);
+            s_cachedAssemblyNames.Value.Add(assemblyName!);
         }
     }
 }

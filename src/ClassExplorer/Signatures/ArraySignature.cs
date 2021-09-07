@@ -7,7 +7,7 @@ namespace ClassExplorer.Signatures
     {
         internal ArraySignature(ITypeSignature element)
         {
-            Debug.Assert(element is not null);
+            Poly.Assert(element is not null);
             Element = element;
         }
 

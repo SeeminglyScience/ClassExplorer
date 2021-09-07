@@ -37,18 +37,27 @@ namespace ClassExplorer.Commands
             Func<string, string, WildcardPattern, bool> matcher = Name switch
             {
                 string name when WildcardPattern.ContainsWildcardCharacters(name)
-                    => (assemblyName, name, pattern) => pattern.IsMatch(assemblyName),
+                    => (assemblyName, _, pattern) => pattern.IsMatch(assemblyName),
 
                 string name when !name.Any(c => char.IsUpper(c))
-                    => (assemblyName, name, pattern) => name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase),
+                    => (assemblyName, name, _) => name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase),
 
                 string name
-                    => (assemblyName, name, pattern) => name.Equals(assemblyName, StringComparison.Ordinal),
+                    => (assemblyName, name, _) => name.Equals(assemblyName, StringComparison.Ordinal),
 
                 _ => Unreachable.Code<Func<string, string, WildcardPattern, bool>>(),
             };
 
             WildcardPattern pattern = new(Name, WildcardOptions.IgnoreCase);
+            Array.Sort(
+                assemblies,
+                static (x, y) =>
+                {
+                    string xLocation = x.IsDynamic ? string.Empty : x.Location;
+                    string yLocation = y.IsDynamic ? string.Empty : y.Location;
+                    return xLocation.CompareTo(yLocation);
+                });
+
             foreach (Assembly assembly in assemblies)
             {
                 string assemblyName = assembly.GetName()?.Name ?? string.Empty;

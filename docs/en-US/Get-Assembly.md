@@ -40,7 +40,7 @@ Get-Assembly *Automation*
 
 # GAC    Version        Location
 # ---    -------        --------
-# True   v4.0.30319     C:\Windows\Microsoft.Net\assembly\GAC_MSIL\System.Management.Automation\v...
+# False  v4.0.30319     C:\Program Files\PowerShell\default\System.Management.…
 ```
 
 Get assemblies that match a wildcard.

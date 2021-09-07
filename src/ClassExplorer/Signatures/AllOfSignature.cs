@@ -9,7 +9,7 @@ namespace ClassExplorer.Signatures
     {
         internal AllOfTypeSignature(ImmutableArray<ITypeSignature> elements)
         {
-            Debug.Assert(!elements.IsDefaultOrEmpty);
+            Poly.Assert(!elements.IsDefaultOrEmpty);
             Elements = elements;
         }
 
@@ -46,7 +46,7 @@ namespace ClassExplorer.Signatures
     {
         internal AllOfMemberSignature(ImmutableArray<IMemberSignature> elements)
         {
-            Debug.Assert(!elements.IsDefaultOrEmpty);
+            Poly.Assert(!elements.IsDefaultOrEmpty);
             Elements = elements;
         }
 
