@@ -6,7 +6,10 @@ namespace ClassExplorer.Signatures
     internal sealed class NotTypeSignature : TypeSignature
     {
         internal NotTypeSignature(ITypeSignature subject)
-            => Signature = subject ?? throw new ArgumentNullException(nameof(subject));
+        {
+            Poly.Assert(subject is not null);
+            Signature = subject;
+        }
 
         internal ITypeSignature Signature { get; }
 

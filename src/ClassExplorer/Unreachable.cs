@@ -9,7 +9,7 @@ namespace ClassExplorer
         [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
         public static T Code<T>()
         {
-            throw new InvalidOperationException("This program location is thought to be unreachable.");
+            throw new InvalidOperationException(SR.Unreachable);
         }
     }
 }

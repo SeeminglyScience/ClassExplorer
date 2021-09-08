@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using ClassExplorer.Commands;
 
 namespace ClassExplorer
 {
@@ -29,15 +27,43 @@ namespace ClassExplorer
             CommandAst commandAst,
             IDictionary fakeBoundParameters)
         {
-            WildcardPattern pattern = WildcardPattern.Get(
-                (wordToComplete ?? string.Empty) + "*",
-                WildcardOptions.IgnoreCase);
+            List<CompletionResult> results = new();
+            Search.Types(
+                new TypeSearchOptions() { Namespace = (wordToComplete ?? string.Empty) + "*" },
+                new ListBuilder(results))
+                .SearchAll();
 
-            return new FindTypeCommand().Invoke<Type>()
-                .Select(static type => type.Namespace)
-                .Distinct()
-                .Where(ns => ns is not null && pattern.IsMatch(ns))
-                .Select(ns => new CompletionResult(ns, ns, CompletionResultType.ParameterValue, ns));
+            return results;
+        }
+
+        private readonly struct ListBuilder : IEnumerationCallback<Type>
+        {
+            private readonly HashSet<string> _alreadyProcessed;
+
+            private readonly List<CompletionResult> _results;
+
+            public ListBuilder(List<CompletionResult> results)
+            {
+                _alreadyProcessed = new(StringComparer.OrdinalIgnoreCase);
+                _results = results;
+            }
+
+            public void Invoke(Type value)
+            {
+                string? ns = value.Namespace;
+                if (Poly.IsStringNullOrEmpty(ns))
+                {
+                    return;
+                }
+
+                if (!_alreadyProcessed.Add(ns))
+                {
+                    return;
+                }
+
+                _results.Add(
+                    new CompletionResult(ns, ns, CompletionResultType.ParameterValue, ns));
+            }
         }
     }
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -44,8 +46,32 @@ internal class SignatureWriter
 
     static SignatureWriter()
     {
+        if (Runspace.DefaultRunspace is not null)
+        {
+            bool supportsVirtualTerminal;
+            using (var pwsh = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                supportsVirtualTerminal = pwsh.AddScript("[bool]$Host.UI.SupportsVirtualTerminal")
+                    .Invoke<bool>()
+                    .FirstOrDefault();
+            }
+
+            if (!supportsVirtualTerminal)
+            {
+                s_useColor = false;
+                return;
+            }
+        }
+
         string? noColor = Environment.GetEnvironmentVariable("NO_COLOR");
         if (!Poly.IsStringNullOrEmpty(noColor))
+        {
+            s_useColor = false;
+            return;
+        }
+
+        string? suppressAnsi = Environment.GetEnvironmentVariable("__SuppressAnsiEscapeSequences");
+        if (!Poly.IsStringNullOrEmpty(suppressAnsi))
         {
             s_useColor = false;
             return;
@@ -78,7 +104,7 @@ internal class SignatureWriter
     {
         _sb = new StringBuilder();
         _colors = colors;
-        _maxLength = s_useColor || ForceColor ? maxLength : -1;
+        _maxLength = (s_useColor || ForceColor) && !NoColor ? maxLength : -1;
     }
 
     public int Indent { get; set; }
@@ -98,6 +124,8 @@ internal class SignatureWriter
     public MemberView View { get; set; }
 
     public bool ForceColor { get; set; }
+
+    public bool NoColor { get; set; }
 
     public SignatureWriter Append(string value)
     {
@@ -224,7 +252,7 @@ internal class SignatureWriter
             MethodBase method when method.IsFamilyAndAssembly => Keyword("private protected").Space(),
             FieldInfo field when field.IsFamilyOrAssembly => Keyword("internal protected").Space(),
             MethodBase method when method.IsFamilyOrAssembly => Keyword("internal protected").Space(),
-            _ => throw new BadImageFormatException(),
+            _ => Unreachable.Code<SignatureWriter>(),
         };
     }
 
@@ -240,7 +268,7 @@ internal class SignatureWriter
             _ when type.IsNestedFamANDAssem => Keyword("private protected").Space(),
             _ when type.IsNestedFamORAssem => Keyword("internal protected").Space(),
             _ when type.IsNestedPublic => Keyword("public").Space(),
-            _ => throw new BadImageFormatException(),
+            _ => Unreachable.Code<SignatureWriter>(),
         };
     }
 
@@ -580,10 +608,10 @@ internal class SignatureWriter
         }
 
         throw new BadImageFormatException(
-            string.Format(
-                CultureInfo.CurrentCulture,
-                "Unexpected custom attribute argument type \"{0}\". Value: {1}",
-                type.FullName, value));
+            SR.Format(
+                SR.BadCAArgumentType,
+                type.FullName,
+                value));
     }
 
     public SignatureWriter Modifiers(MethodBase method)
@@ -837,7 +865,7 @@ internal class SignatureWriter
 
     public SignatureWriter Escape(string value)
     {
-        if (!ForceColor && !s_useColor)
+        if (NoColor || (!ForceColor && !s_useColor))
         {
             return this;
         }
@@ -1007,7 +1035,7 @@ internal class SignatureWriter
                 => (View & MemberView.Family) is not 0 && (View & MemberView.Assembly) is not 0,
             _ when type.IsNestedFamORAssem
                 => (View & MemberView.Family) is not 0 || (View & MemberView.Assembly) is not 0,
-            _ => throw new BadImageFormatException(),
+            _ => Unreachable.Code<bool>(),
         };
     }
 
@@ -1026,7 +1054,7 @@ internal class SignatureWriter
     {
         if (!(member is MethodBase || member is FieldInfo))
         {
-            throw new ArgumentOutOfRangeException(nameof(member), "Unexpected type.");
+            return Unreachable.Code<bool>();
         }
 
         return member switch
@@ -1050,7 +1078,7 @@ internal class SignatureWriter
                 => (View & MemberView.Family) is not 0 && (View & MemberView.Assembly) is not 0,
             MethodBase method when method.IsFamilyOrAssembly
                 => (View & MemberView.Family) is not 0 || (View & MemberView.Assembly) is not 0,
-            _ => throw new BadImageFormatException(),
+            _ => Unreachable.Code<bool>(),
         };
     }
 

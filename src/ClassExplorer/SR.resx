@@ -120,4 +120,46 @@
   <data name="UnexpectedArgument" xml:space="preserve">
     <value>Expected {0} arguments for "{1}".</value>
   </data>
+  <data name="NotSingleTypeExpression" xml:space="preserve">
+    <value>Expected exactly one type expression. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="NotTypeExpression" xml:space="preserve">
+    <value>Expected type expression. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="DecorationBadArgs" xml:space="preserve">
+    <value>The keyword "decoration" requires exactly one generic argument (Example: [decoration[ParameterAttribute]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="TypeNotFound" xml:space="preserve">
+    <value>Unable to find type [{0}].</value>
+  </data>
+  <data name="GenericBadArgCount" xml:space="preserve">
+    <value>The keyword "generic" requires exactly two generic arguments (Example: [generic[exact[IReadOnlyDictionary], args[any, any]]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="GenericBadSecondArg" xml:space="preserve">
+    <value>The keyword "generic" requires the second argument to be args[...] (Example: [generic[exact[IReadOnlyDictionary], args[any, any]]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="BadArgCount" xml:space="preserve">
+    <value>The keyword "{0}" requires exactly one argument. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="NeedsMoreArgs" xml:space="preserve">
+    <value>The keyword "{0}" requires at least {1} arguments. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="NeedsLessArgs" xml:space="preserve">
+    <value>The keyword "{0}" requires at most {1} arguments. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="ArgMustBeResolvable" xml:space="preserve">
+    <value>The generic argument for keyword "{0}" must be a resolvable type. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="Unreachable" xml:space="preserve">
+    <value>This program location is thought to be unreachable.</value>
+  </data>
+  <data name="BadCAArgumentType" xml:space="preserve">
+    <value>Unexpected custom attribute argument type "{0}". Value: {1}</value>
+  </data>
+  <data name="ConvertMustBeRef" xml:space="preserve">
+    <value>Convert expressions (e.g. [ref] [type]) must be "anyref", "in", "out", or "ref". See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="ResolveMapNullValue" xml:space="preserve">
+    <value>Cannot convert null to type "System.Type".</value>
+  </data>
 </root>

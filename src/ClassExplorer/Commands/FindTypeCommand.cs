@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Management.Automation;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using ClassExplorer.Signatures;
-using static ClassExplorer.FilterFrame<System.Type>;
 
 namespace ClassExplorer.Commands
 {
@@ -17,6 +13,8 @@ namespace ClassExplorer.Commands
     [Cmdlet(VerbsCommon.Find, "Type", DefaultParameterSetName = "ByFilter")]
     public class FindTypeCommand : FindReflectionObjectCommandBase<Type>
     {
+        private readonly TypeSearchOptions _options = new();
+
         /// <summary>
         /// Gets or sets the namespace to match.
         /// </summary>
@@ -25,7 +23,11 @@ namespace ClassExplorer.Commands
         [SupportsWildcards]
         [ArgumentCompleter(typeof(NamespaceArgumentCompleter))]
         [Alias("ns")]
-        public string Namespace { get; set; } = null!;
+        public string? Namespace
+        {
+            get => _options.Namespace;
+            set => _options.Namespace = value;
+        }
 
         /// <summary>
         /// Gets or sets the type name to match.
@@ -35,7 +37,11 @@ namespace ClassExplorer.Commands
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
         [ArgumentCompleter(typeof(TypeNameArgumentCompleter))]
-        public override string Name { get; set; } = null!;
+        public override string Name
+        {
+            get => _options.Name!;
+            set => _options.Name = value;
+        }
 
         /// <summary>
         /// Gets or sets the full type name to match.
@@ -43,7 +49,11 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
-        public string FullName { get; set; } = null!;
+        public string? FullName
+        {
+            get => _options.FullName;
+            set => _options.FullName = value;
+        }
 
         /// <summary>
         /// Gets or sets the base type that a type must inherit to match.
@@ -52,7 +62,7 @@ namespace ClassExplorer.Commands
         [ValidateNotNull]
         [Alias("Base")]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type InheritsType { get; set; } = null!;
+        public ScriptBlockStringOrType InheritsType { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the interface that a type must implement to match.
@@ -60,36 +70,47 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeArgumentCompleter))]
-        public Type ImplementsInterface { get; set; } = null!;
+        public ScriptBlockStringOrType ImplementsInterface { get; set; } = null!;
 
         [Parameter]
         [ValidateNotNull]
-        public ScriptBlock Signature { get; set; } = null!;
+        public ScriptBlockStringOrType Signature { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match abstract classes.
         /// </summary>
         [Parameter]
-        public SwitchParameter Abstract { get; set; }
+        public SwitchParameter Abstract
+        {
+            get => _options.Abstract;
+            set => _options.Abstract = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match interfaces.
         /// </summary>
         [Parameter]
-        public SwitchParameter Interface { get; set; }
+        public SwitchParameter Interface
+        {
+            get => _options.Interface;
+            set => _options.Interface = value;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match ValueTypes.
         /// </summary>
         [Parameter]
-        public SwitchParameter ValueType { get; set; }
+        public SwitchParameter ValueType
+        {
+            get => _options.ValueType;
+            set => _options.ValueType = value;
+        }
+
+        private TypeSearch<PipelineEmitter<Type>> _search = null!;
 
         private protected override void OnNoInput()
         {
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                ProcessAssembly(assembly);
-            }
+            _search.SearchAll();
         }
 
         /// <summary>
@@ -98,21 +119,7 @@ namespace ClassExplorer.Commands
         /// <param name="input">The input parameter from the pipeline.</param>
         protected override void ProcessSingleObject(PSObject input)
         {
-            if (input.BaseObject is Assembly assembly)
-            {
-                ProcessAssembly(assembly);
-                return;
-            }
-
-            if (input.BaseObject is Type)
-            {
-                base.ProcessSingleObject(input);
-                return;
-            }
-
-            base.ProcessSingleObject(
-                new PSObject(
-                    input.BaseObject.GetType()));
+            _search.SearchSingleObject(input);
         }
 
         /// <summary>
@@ -121,138 +128,43 @@ namespace ClassExplorer.Commands
         protected override void InitializeFilters()
         {
             Dictionary<string, ScriptBlockStringOrType>? resolutionMap = InitializeResolutionMap();
-            ProcessParameter(static (m, _) => m.IsPublic, !Force.IsPresent);
-            ProcessParameter(static (m, _) => m.IsAbstract, Abstract.IsPresent);
-            ProcessParameter(static (m, _) => m.IsInterface, Interface.IsPresent);
-            ProcessParameter(static (m, _) => m.IsValueType, ValueType.IsPresent);
-            if (InheritsType is not null)
-            {
-                ProcessParameter(
-                    static (m, fc) => Unsafe.As<ITypeSignature>(fc).IsMatch(m),
-                    new AssignableTypeSignature(InheritsType));
-            }
 
-            ProcessParameter(static (m, fc) => ImplementsFilter(m, fc), ImplementsInterface);
-            ProcessNameParameters();
-
+            var parser = new SignatureParser(resolutionMap);
+            var signatures = ImmutableArray.CreateBuilder<ITypeSignature>();
+            ITypeSignature? signature = null;
             if (Signature is not null)
             {
-                ProcessParameter(
-                    static (m, fc) => Unsafe.As<ITypeSignature>(fc).IsMatch(m),
-                    new ScriptBlockStringOrType(Signature).Resolve(new SignatureParser(resolutionMap)));
+                signature = Signature.Resolve(parser);
+                signatures.Add(signature);
             }
 
-            if (FilterScript is not null)
+            if (InheritsType is not null)
             {
-                ITypeSignature filterScriptSig = new FilterScriptSignature(FilterScriptPipe.Create(FilterScript));
-                ReflectionFilter filter = new(
-                    static (type, criteria) => Unsafe.As<ITypeSignature>(criteria).IsMatch(type));
-
-                ProcessParameter(filter, filterScriptSig);
+                ITypeSignature inheritsTypeSignature = InheritsType.Resolve(parser, excludeSelf: true);
+                signatures.Add(inheritsTypeSignature);
+                signature ??= inheritsTypeSignature;
             }
-        }
 
-        /// <summary>
-        /// A filter that matches only public types.
-        /// </summary>
-        /// <param name="m">The type to test for a match.</param>
-        /// <param name="filterCriteria">The parameter is not used.</param>
-        /// <returns>A value indicating whether the object matches.</returns>
-        protected override bool PublicFilter(Type m, object filterCriteria)
-        {
-            return m.IsPublic;
-        }
-
-        private static bool WildcardNamespaceFilter(Type m, object? filterCriteria)
-        {
-            return Unsafe.As<WildcardPattern>(filterCriteria).IsMatch(m.Namespace);
-        }
-
-        private static bool RegexNamespaceFilter(Type m, object? filterCriteria)
-        {
-            return m.Namespace is { Length: > 0 }
-                && Unsafe.As<Regex>(filterCriteria).IsMatch(m.Namespace);
-        }
-
-        private static bool WildcardFullNameFilter(Type m, object? filterCriteria)
-        {
-            return Unsafe.As<WildcardPattern>(filterCriteria).IsMatch(m.FullName);
-        }
-
-        private static bool RegexFullNameFilter(Type m, object? filterCriteria)
-        {
-            return Unsafe.As<Regex>(filterCriteria).IsMatch(m.FullName);
-        }
-
-        private static bool ImplementsFilter(Type m, object? filterCriteria)
-        {
-            Type implementedInterface = Unsafe.As<Type>(filterCriteria);
-            foreach (Type @interface in m.GetInterfaces())
+            if (ImplementsInterface is not null)
             {
-                if (@interface.IsGenericType)
-                {
-                    if (implementedInterface == @interface.GetGenericTypeDefinition())
-                    {
-                        return true;
-                    }
-
-                    continue;
-                }
-
-                if (implementedInterface.IsGenericType)
-                {
-                    continue;
-                }
-
-                if (@interface == implementedInterface)
-                {
-                    return true;
-                }
+                ITypeSignature implementsSignature = ImplementsInterface.Resolve(parser, excludeSelf: true);
+                signatures.Add(implementsSignature);
+                signature ??= implementsSignature;
             }
 
-            return false;
-        }
-
-        private void ProcessNameParameters()
-        {
-            ProcessName(
-                Name,
-                static (m, fc) => WildcardNameFilter(m, fc),
-                static (m, fc) => RegexNameFilter(m, fc));
-
-            ProcessName(
-                Namespace,
-                static (m, fc) => WildcardNamespaceFilter(m, fc),
-                static (m, fc) => RegexNamespaceFilter(m, fc));
-            ProcessName(
-                FullName,
-                static (m, fc) => WildcardFullNameFilter(m, fc),
-                static (m, fc) => RegexFullNameFilter(m, fc));
-        }
-
-        private void ProcessAssembly(Assembly assembly)
-        {
-            Module[] modules;
-            try
+            if (signatures is { Count: > 1 })
             {
-                modules = assembly.GetModules();
-            }
-            catch (ReflectionTypeLoadException)
-            {
-                return;
+                signature = new AllOfTypeSignature(signatures.ToImmutable());
             }
 
-            foreach (Module module in modules)
-            {
-                try
-                {
-                    module.FindTypes(static (m, fc) => AggregateFilter(m, fc), this);
-                }
-                catch (ReflectionTypeLoadException)
-                {
-                    continue;
-                }
-            }
+            _options.FilterScript = FilterScript;
+            _options.Force = Force;
+            _options.Not = Not;
+            _options.RegularExpression = RegularExpression;
+            _options.ResolutionMap = resolutionMap;
+            _options.Signature = signature;
+            _options.AccessView = AccessView;
+            _search = Search.Types(_options, new PipelineEmitter<Type>(this));
         }
     }
 }

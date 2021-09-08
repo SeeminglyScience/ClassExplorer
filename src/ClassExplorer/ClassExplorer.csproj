@@ -23,7 +23,7 @@
       omnisharp-vscode doesn't seem to pick this up without this.
       For now we'll ignore the compiler warning
     -->
-    <!-- <Compile Include="$(IntermediateOutputPath)\SR.Designer.cs" /> -->
+    <Compile Include="$(IntermediateOutputPath)\SR.Designer.cs" />
     <EmbeddedResource Update="SR.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <StronglyTypedFileName>$(IntermediateOutputPath)\SR.Designer.cs</StronglyTypedFileName>

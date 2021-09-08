@@ -1,10 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace ClassExplorer.Signatures
 {
-    internal sealed partial class RefSignature : TypeSignature
+    internal sealed class RefSignature : TypeSignature
     {
         internal RefSignature(RefKind kind, ITypeSignature element)
         {

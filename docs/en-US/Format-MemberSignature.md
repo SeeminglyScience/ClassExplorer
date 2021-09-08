@@ -13,7 +13,7 @@ Generate reference library style C# code of a member's metadata.
 
 ```
 Format-MemberSignature [-InputObject <MemberInfo>] [-View <String>] [-Recurse] [-Force] [-IncludeSpecial]
- [-Simple] [<CommonParameters>]
+ [-Simple] [-NoColor] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -141,6 +141,22 @@ Accept wildcard characters: False
 ### -Simple
 
 When specified attribute decorations will not be included and new lines will not be inserted.
+
+```yaml
+Type: System.Management.Automation.SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -NoColor
+
+When specified ANSI escape sequences used to add syntax highlighting to the signature will be omitted.
 
 ```yaml
 Type: System.Management.Automation.SwitchParameter

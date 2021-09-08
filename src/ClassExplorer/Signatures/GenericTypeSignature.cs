@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace ClassExplorer.Signatures
 {
@@ -12,13 +11,54 @@ namespace ClassExplorer.Signatures
             Poly.Assert(!arguments.IsDefaultOrEmpty);
             Definition = definition;
             Arguments = arguments;
+
+            if (definition is AssignableTypeSignature assignable)
+            {
+                _isAssignable = true;
+                _isAssignableInterface = assignable.Type.IsInterface;
+            }
         }
 
         internal ITypeSignature Definition { get; }
 
         internal ImmutableArray<ITypeSignature> Arguments { get; }
 
+        private readonly bool _isAssignable;
+
+        private readonly bool _isAssignableInterface;
+
         public override bool IsMatch(Type type)
+        {
+            if (!_isAssignable)
+            {
+                return IsMatchImpl(type);
+            }
+
+            for (Type? parent = type; parent is not null; parent = parent.BaseType)
+            {
+                if (IsMatchImpl(parent))
+                {
+                    return true;
+                }
+            }
+
+            if (!_isAssignableInterface)
+            {
+                return false;
+            }
+
+            foreach (Type implementation in type.GetInterfaces())
+            {
+                if (IsMatchImpl(implementation))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsMatchImpl(Type type)
         {
             if (!type.IsGenericType)
             {

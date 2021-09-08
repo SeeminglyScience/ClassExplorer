@@ -29,6 +29,9 @@ public sealed class FormatMemberSignatureCommand : PSCmdlet
     [Parameter]
     public SwitchParameter Simple { get; set; }
 
+    [Parameter]
+    public SwitchParameter NoColor { get; set; }
+
     private SignatureWriter _writer = null!;
 
     protected override void BeginProcessing()
@@ -44,7 +47,8 @@ public sealed class FormatMemberSignatureCommand : PSCmdlet
             Recurse = Recurse.IsPresent,
             IncludeSpecial = IncludeSpecial.IsPresent,
             Simple = Simple.IsPresent,
-            ForceColor = true,
+            ForceColor = !NoColor,
+            NoColor = NoColor,
         };
 
         switch (View)

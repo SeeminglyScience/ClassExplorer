@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +9,7 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using ClassExplorer.Commands;
 
 namespace ClassExplorer.Signatures
@@ -38,7 +38,11 @@ namespace ClassExplorer.Signatures
 
         private static ExpressionAst GetFirstExpression(ScriptBlock signature)
         {
-            ScriptBlockAst ast = (ScriptBlockAst)signature.Ast;
+            return GetFirstExpression((ScriptBlockAst)signature.Ast);
+        }
+
+        private static ExpressionAst GetFirstExpression(ScriptBlockAst ast)
+        {
             if (ast.EndBlock is null)
             {
                 ThrowExpectedTypeExpression(ast.Extent);
@@ -49,7 +53,7 @@ namespace ClassExplorer.Signatures
             {
                 ThrowSignatureParseException(
                     ast.Extent,
-                    "Expected exactly one type expression.");
+                    SR.NotSingleTypeExpression);
                 return Unreachable.Code<ExpressionAst>();
             }
 
@@ -64,7 +68,7 @@ namespace ClassExplorer.Signatures
             {
                 ThrowSignatureParseException(
                     pipeline.Extent,
-                    "Expected exactly one type expression.");
+                    SR.NotSingleTypeExpression);
                 return Unreachable.Code<ExpressionAst>();
             }
 
@@ -83,6 +87,11 @@ namespace ClassExplorer.Signatures
             return Parse(GetFirstExpression(signature));
         }
 
+        internal ITypeSignature Parse(ScriptBlockAst signature)
+        {
+            return Parse(GetFirstExpression(signature));
+        }
+
         private ITypeSignature Parse(ExpressionAst expression)
         {
             if (expression is ConvertExpressionAst convert)
@@ -97,7 +106,7 @@ namespace ClassExplorer.Signatures
                     Keywords.anyref => new RefSignature(RefKind.AnyRef, Parse(convert.Child)),
                     _ => ThrowSignatureParseException(
                         convert.Type.TypeName.Extent,
-                        "Expected 'anyref', 'in', 'out', or 'ref'."),
+                        SR.ConvertMustBeRef),
                 };
             }
 
@@ -113,7 +122,7 @@ namespace ClassExplorer.Signatures
         private static ITypeSignature ThrowExpectedTypeExpression(IScriptExtent extent)
         {
             throw new SignatureParseException(
-                "Expected type expression.",
+                SR.NotTypeExpression,
                 extent);
         }
 
@@ -225,7 +234,7 @@ namespace ClassExplorer.Signatures
                 {
                     return ThrowSignatureParseException(
                         errorPosition.Extent,
-                        @"The keyword ""decoration"" requires exactly one generic argument. Example: [decoration[ParameterAttribute]]");
+                        SR.DecorationBadArgs);
                 }
 
                 Type? type = ResolveReflectionType(
@@ -237,8 +246,7 @@ namespace ClassExplorer.Signatures
                 {
                     ThrowSignatureParseException(
                         args[0].Extent,
-                        "Unable to find type [{0}].",
-                        args[0]);
+                        SR.Format(SR.TypeNotFound, args[0]));
                 }
 
                 string name = type.FullName ?? type.Name;
@@ -300,14 +308,14 @@ namespace ClassExplorer.Signatures
             {
                 return ThrowSignatureParseException(
                     errorPosition.Extent,
-                    @"The keyword ""generic"" requires exactly two generic arguments. Example: [generic[exact[IReadOnlyDictionary], args[any, any]]]");
+                    SR.GenericBadArgCount);
             }
 
             if (args[1] is not GenericTypeName generic || generic.TypeName.Name is not Keywords.args)
             {
                 return ThrowSignatureParseException(
                     errorPosition.Extent,
-                    @"The keyword ""generic"" requires the second argument to be args[...]. Example: [generic[exact[IReadOnlyDictionary], args[any, any]]]");
+                    SR.GenericBadSecondArg);
             }
 
             ITypeSignature definition = Parse(args[0]);
@@ -326,8 +334,7 @@ namespace ClassExplorer.Signatures
             {
                 return ThrowSignatureParseException(
                     errorPosition.Extent,
-                    @"The keyword ""{0}"" requires exactly one argument.",
-                    errorPosition.Name);
+                    SR.Format(SR.BadArgCount, errorPosition.Name));
             }
 
             return Parse(args[0]);
@@ -343,18 +350,14 @@ namespace ClassExplorer.Signatures
             {
                 ThrowSignatureParseException(
                     errorPosition.Extent,
-                    @"The keyword ""{0}"" requires at least {1} arguments.",
-                    errorPosition.Name,
-                    assertAtLeast);
+                    SR.Format(SR.NeedsMoreArgs, errorPosition.Name, assertAtLeast));
             }
 
             if (assertAtMax is not -1 && args.Count > assertAtMax)
             {
                 ThrowSignatureParseException(
                     errorPosition.Extent,
-                    @"The keyword ""{0}"" requires at most {1} arguments.",
-                    errorPosition.Name,
-                    assertAtMax);
+                    SR.Format(SR.NeedsLessArgs, errorPosition.Name, assertAtMax));
             }
 
             var builder = ImmutableArray.CreateBuilder<ITypeSignature>(args.Count);
@@ -368,15 +371,14 @@ namespace ClassExplorer.Signatures
 
         private Type SingleType(string name, TypeName subject, ReadOnlyCollection<ITypeName> genericArgs)
         {
-            const string message = @"The keyword ""{0}"" requires exactly one generic argument.";
             if (genericArgs.Count is 0)
             {
-                ThrowSignatureParseException(subject.Extent, message, name);
+                ThrowSignatureParseException(subject.Extent, SR.Format(SR.BadArgCount, name));
             }
 
             if (genericArgs.Count is > 1)
             {
-                ThrowSignatureParseException(genericArgs[2].Extent, message, name);
+                ThrowSignatureParseException(genericArgs[2].Extent, SR.Format(SR.BadArgCount, name));
             }
 
             Type? resolvedType = ResolveReflectionType(genericArgs[0]);
@@ -387,8 +389,7 @@ namespace ClassExplorer.Signatures
 
             ThrowSignatureParseException(
                 genericArgs[0].Extent,
-                @"The generic argument for keyword ""{0}"" must be a resolvable type.",
-                name);
+                SR.Format(SR.ArgMustBeResolvable, name));
 
             return null;
         }
@@ -411,7 +412,7 @@ namespace ClassExplorer.Signatures
                 {
                     ThrowSignatureParseException(
                         firstExpression.Extent,
-                        "Expected type expression.");
+                        SR.NotTypeExpression);
                     return Unreachable.Code<string>();
                 }
 
@@ -468,8 +469,7 @@ namespace ClassExplorer.Signatures
 
             ThrowSignatureParseException(
                 typeName.Extent,
-                "Unable to find type [{0}].",
-                typeName.Name);
+                SR.Format(SR.TypeNotFound, typeName.Name));
             return null;
         }
 
@@ -595,61 +595,6 @@ namespace ClassExplorer.Signatures
         private static ITypeSignature ThrowSignatureParseException(IScriptExtent extent, string message)
         {
             throw new SignatureParseException(message, extent);
-        }
-
-        [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowSignatureParseException(IScriptExtent extent, string formatString, object arg)
-        {
-            throw new SignatureParseException(
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    formatString,
-                    arg),
-                extent);
-        }
-
-        [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowSignatureParseException(IScriptExtent extent, string formatString, object arg0, object arg1)
-        {
-            throw new SignatureParseException(
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    formatString,
-                    arg0,
-                    arg1),
-                extent);
-        }
-
-        [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowSignatureParseException(
-            IScriptExtent extent,
-            string formatString,
-            object arg0,
-            object arg1,
-            object arg2)
-        {
-            throw new SignatureParseException(
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    formatString,
-                    arg0,
-                    arg1,
-                    arg2),
-                extent);
-        }
-
-        [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowSignatureParseException(
-            IScriptExtent extent,
-            string formatString,
-            params object[] args)
-        {
-            throw new SignatureParseException(
-                string.Format(
-                    CultureInfo.CurrentCulture,
-                    formatString,
-                    args),
-                extent);
         }
 
         private static bool IsGenericParameter(TypeName typeName, out GenericParameterKind kind, out int position)

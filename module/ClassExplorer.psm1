@@ -5,6 +5,6 @@ if (-not $PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq 'Desktop') 
 }
 
 Update-FormatData -PrependPath $PSScriptRoot\ClassExplorer.format.ps1xml
-Update-TypeData -PrependPath $PSScriptRoot\ClassExplorer.types.ps1xml
+Update-TypeData -PrependPath $PSScriptRoot\ClassExplorer.types.ps1xml -ErrorAction Ignore
 
-Export-ModuleMember -Cmdlet *-*
+Export-ModuleMember -Cmdlet Find-Type, Find-Member, Format-MemberSignature, Get-Assembly, Get-Parameter

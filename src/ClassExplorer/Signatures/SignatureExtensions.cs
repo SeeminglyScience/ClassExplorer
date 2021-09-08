@@ -1,10 +1,36 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace ClassExplorer.Signatures
 {
     internal static class SignatureExtensions
     {
+        public static void AddFilter<TMemberType>(
+            this List<Filter<TMemberType>> list,
+            ReflectionFilter<TMemberType> filter,
+            FilterOptions options = FilterOptions.None)
+            where TMemberType : MemberInfo
+        {
+            list.Add(new Filter<TMemberType>(filter, state: null, options));
+        }
+
+        public static void AddFilter<TMemberType, TState>(
+            this List<Filter<TMemberType>> list,
+            TState? state,
+            Func<TMemberType, TState, bool> filter,
+            FilterOptions options = FilterOptions.None)
+            where TMemberType : MemberInfo
+            where TState : class
+        {
+            list.Add(
+                new Filter<TMemberType>(
+                    Unsafe.As<ReflectionFilter<TMemberType>>(filter),
+                    state,
+                    options));
+        }
+
         public static bool Contains<T>(this T[] subject, T value)
         {
             return Array.IndexOf(subject, value) is not -1;

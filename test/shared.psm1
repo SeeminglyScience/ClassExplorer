@@ -1,8 +1,12 @@
 function compile {
-    [CmdletBinding()]
+    [OutputType([Type])]
+    [CmdletBinding(DefaultParameterSetName = 'Member', PositionalBinding = $false)]
     param(
-        [Parameter()]
+        [Parameter(Position = 0, ParameterSetName = 'Member')]
         [string[]] $Member,
+
+        [Parameter(ParameterSetName = 'Type')]
+        [string[]] $Type,
 
         [Parameter()]
         [string[]] $Using,
@@ -23,10 +27,26 @@ function compile {
 
                 $splat['CompilerParameters'] = $options
             }
+        } else {
+            $splat['IgnoreWarnings'] = $true
         }
 
         $usings = foreach ($u in $Using) {
             "using $u;"
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'Type') {
+            return Add-Type @splat -WarningAction Ignore -PassThru -TypeDefinition ('
+                {0}
+
+                namespace ClassExplorer.Tests.{1}.{2}
+                {{
+                    {3}
+                }}' -f ($usings -join [Environment]::NewLine),
+                    ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentBlock.Name -replace ' |-', '_'),
+                    ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentTest.Name -replace ' |-', '_'),
+                    ($Type -join [Environment]::NewLine))
+
         }
 
         return Add-Type @splat -WarningAction Ignore -PassThru -TypeDefinition ('
@@ -39,8 +59,8 @@ function compile {
                     {3}
                 }}
             }}' -f ($usings -join [Environment]::NewLine),
-                ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentBlock.Name -replace ' '),
-                $PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentTest.Name,
+                ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentBlock.Name -replace ' |-', '_'),
+                ($PSCmdlet.SessionState.PSVariable.GetValue('____Pester').CurrentTest.Name -replace ' |-', '_'),
                 ($Member -join [Environment]::NewLine))
     }
 }

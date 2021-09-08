@@ -1,7 +1,7 @@
-# $moduleName = 'ClassExplorer'
-# $manifestPath = "$PSScriptRoot\..\Release\$moduleName"
+$moduleName = 'ClassExplorer'
+$manifestPath = "$PSScriptRoot\..\Release\$moduleName"
 
-# Import-Module $manifestPath
+Import-Module $manifestPath
 Import-Module $PSScriptRoot\shared.psm1
 
 Describe 'Type signatures' {
@@ -16,8 +16,13 @@ Describe 'Type signatures' {
     }
 
     it 'contains' {
-        Find-Type -Signature { [contains[T]] } -Namespace ClassExplorer |
-            Should -BeTheseMembers FilterFrame``1
+        $type = compile -Type '
+            public class Something<T>
+            {
+            }'
+
+        Find-Type -Signature { [contains[T]] } -Namespace $type.Namespace |
+            Should -BeTheseMembers Something``1
     }
 
     it 'any' {

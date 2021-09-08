@@ -1,18 +1,25 @@
 using System;
 
-namespace ClassExplorer.Signatures
+namespace ClassExplorer.Signatures;
+
+[Flags]
+public enum AccessView
 {
-    [Flags]
-    internal enum AccessView
-    {
-        Default = 0 << 0,
+    Default = 0 << 0,
 
-        External = 1 << 0,
+    Public = 1 << 0,
 
-        Child = 1 << 1,
+    External = Public,
 
-        Internal = 1 << 2,
+    Protected = 1 << 1,
 
-        This = 1 << 3,
-    }
+    Child = Public | Protected,
+
+    Internal = 1 << 2,
+
+    SameAssembly = Internal | Public,
+
+    Private = 1 << 3,
+
+    This = Public | Protected | Internal | Private,
 }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Text;
+using System.Text.RegularExpressions;
 using ClassExplorer.Commands;
 using Microsoft.PowerShell;
 
@@ -21,7 +23,22 @@ namespace ClassExplorer
         /// <returns>Type objects that match the current text.</returns>
         public static IEnumerable<Type> GetTypesForCompletion(string wordToComplete)
         {
-            return new FindTypeCommand() { Name = wordToComplete + "*" }.Invoke<Type>();
+            List<Type> types = new();
+            Search.Types(
+                new TypeSearchOptions() { Name = wordToComplete + "*" },
+                new ListBuilder(types))
+                .SearchAll();
+
+            return types;
+        }
+
+        private readonly struct ListBuilder : IEnumerationCallback<Type>
+        {
+            private readonly List<Type> _types;
+
+            public ListBuilder(List<Type> types) => _types = types;
+
+            public void Invoke(Type value) => _types.Add(value);
         }
 
         /// <summary>
@@ -47,11 +64,21 @@ namespace ClassExplorer
         {
             if (type.IsGenericType)
             {
+                StringBuilder name = new(Regex.Replace(type.FullName, @"`\d+$", string.Empty));
+                name.Append("[any");
+                int arity = type.GetGenericArguments().Length;
+                for (int i = 1; i < arity; i++)
+                {
+                    name.Append(", any");
+                }
+
+                name.Append(']');
+                string fullName = name.ToString();
                 return new CompletionResult(
-                    type.FullName,
-                    type.FullName,
+                    fullName,
+                    fullName,
                     CompletionResultType.ParameterValue,
-                    type.FullName);
+                    fullName);
             }
 
             return new CompletionResult(
