@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-
-using ClassExplorer.Commands;
 
 namespace ClassExplorer.Signatures
 {
@@ -158,6 +155,7 @@ namespace ClassExplorer.Signatures
             ReadOnlyCollection<ITypeName> args,
             out bool argsConsumed)
         {
+            string nameAsLower = typeName.Name.ToLowerInvariant();
             int i = 0;
             while (!(typeName.Name[^(i + 1)] is not '+'))
             {
@@ -197,7 +195,7 @@ namespace ClassExplorer.Signatures
             }
 
             argsConsumed = false;
-            return typeName.Name switch
+            return nameAsLower switch
             {
                 Keywords.exact => Consume(new ExactTypeSignature(SingleType(Keywords.exact, typeName, args)), out argsConsumed),
                 Keywords.assignable => Consume(new AssignableTypeSignature(SingleType(Keywords.assignable, typeName, args)), out argsConsumed),
@@ -477,18 +475,14 @@ namespace ClassExplorer.Signatures
         {
             if (!fullName.Contains('.'))
             {
-                Type? type = new FindTypeCommand() { Name = fullName, Force = true }
-                    .Invoke<Type>()
-                    .FirstOrDefault();
-
+                Type? type = Search.FirstType(new() { Name = fullName, Force = true });
                 if (type is not null || arity is not > 0)
                 {
                     return type;
                 }
 
-                return new FindTypeCommand() { Name = Poly.StringJoin('`', fullName, arity), Force = true }
-                    .Invoke<Type>()
-                    .FirstOrDefault();
+                return Search.FirstType(
+                    new() { Name = Poly.StringJoin('`', fullName, arity), Force = true });
             }
 
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -600,21 +594,21 @@ namespace ClassExplorer.Signatures
         private static bool IsGenericParameter(TypeName typeName, out GenericParameterKind kind, out int position)
         {
             string name = typeName.Name;
-            if (name is "T")
+            if (name is "T" or "t")
             {
                 kind = GenericParameterKind.Any;
                 position = -1;
                 return true;
             }
 
-            if (name is "TM")
+            if (name is "TM" or "tm" or "Tm" or "tM")
             {
                 kind = GenericParameterKind.Method;
                 position = -1;
                 return true;
             }
 
-            if (name is "TT")
+            if (name is "TT" or "tt" or "Tt" or "tT")
             {
                 kind = GenericParameterKind.Type;
                 position = -1;
@@ -623,19 +617,19 @@ namespace ClassExplorer.Signatures
 
             ReadOnlySpan<char> span = name.AsSpan();
 
-            if (span is { Length: > 1 } && span[0] is 'T' && Poly.TryParseInt32(span[1..], out position))
+            if (span is { Length: > 1 } && span[0] is 'T' or 't' && Poly.TryParseInt32(span[1..], out position))
             {
                 kind = GenericParameterKind.Any;
                 return true;
             }
 
-            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'M' && Poly.TryParseInt32(span[2..], out position))
+            if (span is { Length: > 2 } && span[0] is 'T' or 't' && span[1] is 'M' or 'm' && Poly.TryParseInt32(span[2..], out position))
             {
                 kind = GenericParameterKind.Method;
                 return true;
             }
 
-            if (span is { Length: > 2 } && span[0] is 'T' && span[1] is 'T' && Poly.TryParseInt32(span[2..], out position))
+            if (span is { Length: > 2 } && span[0] is 'T' or 't' && span[1] is 'T' or 't' && Poly.TryParseInt32(span[2..], out position))
             {
                 kind = GenericParameterKind.Type;
                 return true;
