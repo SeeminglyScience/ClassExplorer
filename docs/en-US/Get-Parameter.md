@@ -87,5 +87,5 @@ Matched parameters will be returned to the pipeline.
 
 [Find-Type](Find-Type.md)
 [Find-Member](Find-Member.md)
-[Find-Namespace](Find-Namespace.md)
 [Get-Assembly](Get-Assembly.md)
+[Format-MemberSignature](Format-MemberSignature.md)

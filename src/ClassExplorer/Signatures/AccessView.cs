@@ -1,6 +1,6 @@
 using System;
 
-namespace ClassExplorer.Signatures;
+namespace ClassExplorer;
 
 [Flags]
 public enum AccessView

@@ -7,9 +7,9 @@ using System.Management.Automation.Language;
 namespace ClassExplorer
 {
     /// <summary>
-    /// Provides argument completion for namespace input parameters.
+    /// Provides argument completion for Type input parameters.
     /// </summary>
-    public sealed class NamespaceArgumentCompleter : IArgumentCompleter
+    public sealed class TypeFullNameArgumentCompleter : IArgumentCompleter
     {
         /// <summary>
         /// Called by the PowerShell engine to complete a parameter.
@@ -33,7 +33,7 @@ namespace ClassExplorer
                 out char suffix);
 
             Search.Types(
-                new TypeSearchOptions() { Namespace = string.Concat(wordToComplete, "*") },
+                new() { FullName = string.Concat(wordToComplete, "*") },
                 new CreateCompletionResult(prefix, suffix, out List<CompletionResult> results))
                 .SearchAll();
 
@@ -42,45 +42,32 @@ namespace ClassExplorer
 
         private readonly struct CreateCompletionResult : IEnumerationCallback<Type>
         {
+            private readonly List<CompletionResult> _results;
+
             private readonly char _prefix;
 
             private readonly char _suffix;
 
-            private readonly HashSet<string> _alreadyProcessed;
-
-            private readonly List<CompletionResult> _results;
-
             public CreateCompletionResult(char prefix, char suffix, out List<CompletionResult> results)
             {
+                _results = results = new();
                 _prefix = prefix;
                 _suffix = suffix;
-                _alreadyProcessed = new(StringComparer.OrdinalIgnoreCase);
-                _results = results = new();
             }
 
             public void Invoke(Type value)
             {
-                string? @namespace = value.Namespace;
-                if (Poly.IsStringNullOrEmpty(@namespace))
-                {
-                    return;
-                }
-
-                if (!_alreadyProcessed.Add(@namespace))
-                {
-                    return;
-                }
-
+                var (_, list, tip) = CompletionHelper.GetCompletionValue(value);
                 string completionValue = CompletionHelper.FinishCompletionValue(
-                    @namespace,
+                    value.FullName ?? value.Name,
                     (_prefix, _suffix));
 
                 _results.Add(
                     new CompletionResult(
                         completionValue,
-                        @namespace,
+                        list,
                         CompletionResultType.ParameterValue,
-                        @namespace));
+                        tip));
             }
         }
     }

@@ -62,7 +62,7 @@ namespace ClassExplorer
 
         private static void AppDomain_OnAssemblyLoad(object? source, AssemblyLoadEventArgs e)
         {
-            string? assemblyName = e.LoadedAssembly.GetName()?.Name ?? null;
+            string? assemblyName = e.LoadedAssembly.GetName()?.Name;
             if (Poly.IsStringNullOrEmpty(assemblyName))
             {
                 return;

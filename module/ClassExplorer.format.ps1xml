@@ -139,7 +139,115 @@
                 <TableHeaders>
                     <TableColumnHeader>
                         <Label>Access</Label>
-                        <Width>18</Width>
+                        <Width>13</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Modifiers</Label>
+                        <Width>19</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.IsPublic -or $_.IsNestedPublic) {
+        return 'public'
+    }
+
+    if ($_.IsNotPublic -or $_.IsNestedAssembly) {
+        return 'internal'
+    }
+
+    if ($_.IsNestedFamily) {
+        return 'protected'
+    }
+
+    if ($_.IsNestedFamANDAssem) {
+        return 'private protected'
+    }
+
+    if ($_.IsNestedFamORAssem) {
+        return 'internal protected'
+    }
+
+    if ($_.IsNestedPrivate) {
+        return 'private'
+    }
+
+    return 'unknown'
+})
+
+return [ClassExplorer.Internal._Format]::Keyword($str, 13)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.BaseType -eq [enum]) {
+        return 'enum'
+    }
+
+    if ($_.BaseType -eq [ValueType]) {
+        if ($_.CustomAttributes.AttributeType.Name -contains 'IsReadOnlyAttribute') {
+            'readonly'
+        }
+
+        if ($_.IsByRefLike) {
+            'ref'
+        }
+
+        return 'struct'
+    }
+
+    if ($_.IsInterface) {
+        return 'interface'
+    }
+
+    if ($_.IsSealed -and $_.IsAbstract) {
+        return 'static class'
+    }
+
+    if ($_.IsSealed) {
+        return 'sealed class'
+    }
+
+    if ($_.IsAbstract) {
+        return 'abstract class'
+    }
+
+    return 'class'
+}) -join ' '
+
+return [ClassExplorer.Internal._Format]::Keyword($str)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::TypeAndParent($PSItem, [Console]::BufferWidth - 13 - 19 - 3)</ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>Type-Large</Name>
+            <ViewSelectedBy>
+                <TypeName>System.RuntimeType</TypeName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.Namespace)</ScriptBlock>
+                <Label>Namespace</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Access</Label>
+                        <Width>13</Width>
                     </TableColumnHeader>
                     <TableColumnHeader>
                         <Label>Modifiers</Label>
@@ -186,7 +294,7 @@ $str = (&amp; {
     return 'unknown'
 })
 
-return [ClassExplorer.Internal._Format]::Keyword($str)
+return [ClassExplorer.Internal._Format]::Keyword($str, 13)
                                 </ScriptBlock>
                             </TableColumnItem>
                             <TableColumnItem>
@@ -230,7 +338,7 @@ return [ClassExplorer.Internal._Format]::Keyword($str)
                                 <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem, 41)</ScriptBlock>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.BaseType, [Console]::BufferWidth - 18 - 19 - 41 - 4)</ScriptBlock>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.BaseType, [Console]::BufferWidth - 13 - 19 - 41 - 4) </ScriptBlock>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

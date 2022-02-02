@@ -40,8 +40,10 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
             _options.AccessView = AccessView.This;
         }
 
+        SignatureParser parser = new(_options.ResolutionMap);
+        InitializeFastFilters(filters, parser);
         InitCommonFilters(filters);
-        InitializeFilters(filters);
+        InitializeOtherFilters(filters, parser);
 
         if (_options.FilterScript is not null)
         {
@@ -84,7 +86,9 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
         }
     }
 
-    protected abstract void InitializeFilters(List<Filter<TMemberType>> filters);
+    protected abstract void InitializeFastFilters(List<Filter<TMemberType>> filters, SignatureParser parser);
+
+    protected abstract void InitializeOtherFilters(List<Filter<TMemberType>> filters, SignatureParser parser);
 
     protected static bool AggregateFilter(TMemberType member, object? state, bool isPipeFilter = false)
     {

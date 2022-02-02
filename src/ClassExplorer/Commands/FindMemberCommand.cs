@@ -24,7 +24,8 @@ namespace ClassExplorer.Commands
         /// </summary>
         [Parameter]
         [ValidateNotNull]
-        [ArgumentCompleter(typeof(TypeArgumentCompleter))]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
+        [Alias("pt")]
         public ScriptBlockStringOrType? ParameterType
         {
             get => _options.ParameterType;
@@ -36,7 +37,8 @@ namespace ClassExplorer.Commands
         /// </summary>
         [Parameter]
         [ValidateNotNull]
-        [ArgumentCompleter(typeof(TypeArgumentCompleter))]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
+        [Alias("ret", "rt")]
         public ScriptBlockStringOrType? ReturnType
         {
             get => _options.ReturnType;
@@ -47,6 +49,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to include special name members.
         /// </summary>
         [Parameter]
+        [Alias("isn")]
         public SwitchParameter IncludeSpecialName
         {
             get => _options.IncludeSpecialName;
@@ -54,6 +57,7 @@ namespace ClassExplorer.Commands
         }
 
         [Parameter]
+        [Alias("HasAttr", "attr")]
         public ScriptBlockStringOrType? Decoration
         {
             get => _options.Decoration;
@@ -65,7 +69,7 @@ namespace ClassExplorer.Commands
         /// </summary>
         [Parameter]
         [ValidateNotNull]
-        [Alias("MT")]
+        [Alias("mt")]
         public MemberTypes MemberType
         {
             get => _options.MemberType;
@@ -76,6 +80,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to only match static members.
         /// </summary>
         [Parameter]
+        [Alias("s")]
         public SwitchParameter Static
         {
             get => _options.Static;
@@ -86,6 +91,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to only match instance members.
         /// </summary>
         [Parameter]
+        [Alias("i")]
         public SwitchParameter Instance
         {
             get => _options.Instance;
@@ -96,6 +102,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to only match abstract members.
         /// </summary>
         [Parameter]
+        [Alias("a")]
         public SwitchParameter Abstract
         {
             get => _options.Abstract;
@@ -106,6 +113,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to only match virtual members.
         /// </summary>
         [Parameter]
+        [Alias("v")]
         public SwitchParameter Virtual
         {
             get => _options.Virtual;
@@ -113,6 +121,7 @@ namespace ClassExplorer.Commands
         }
 
         [Parameter]
+        [Alias("d")]
         public SwitchParameter Declared
         {
             get => _options.Declared;
@@ -120,6 +129,7 @@ namespace ClassExplorer.Commands
         }
 
         [Parameter]
+        [Alias("io")]
         public SwitchParameter IncludeObject
         {
             get => _options.IncludeObject;

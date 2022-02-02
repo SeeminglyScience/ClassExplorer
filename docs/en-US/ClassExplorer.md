@@ -12,6 +12,12 @@ Locale: en-US
 
 ClassExplorer is a PowerShell module that enables quickly searching the AppDomain for classes and members.
 
+## About Topics
+
+### [about_Type_Signatures](about_Type_Signatures.help.md)
+
+Type signatures are a custom query language built into PowerShell type expressions to enable complex searches of the environment. Originally built to more easily search for generic types, but allows for very precise exploration of currently loaded assemblies.
+
 ## ClassExplorer Cmdlets
 
 ### [Find-Member](Find-Member.md)

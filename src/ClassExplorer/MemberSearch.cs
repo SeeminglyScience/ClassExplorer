@@ -145,7 +145,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
             filterCriteria: this);
     }
 
-    protected override void InitializeFilters(List<Filter<MemberInfo>> filters)
+    protected override void InitializeFastFilters(List<Filter<MemberInfo>> filters, SignatureParser parser)
     {
         _flags = BindingFlags.Instance | BindingFlags.Static;
         if ((_options.AccessView & AccessView.Public) is not 0)
@@ -193,31 +193,6 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
                 FilterOptions.ExcludeNot);
         }
 
-        SignatureParser parser = new(_options.ResolutionMap);
-        if (_options.ParameterType is not null)
-        {
-            filters.AddFilter(
-                new ParameterTypeSignature(_options.ParameterType.Resolve(parser)),
-                static (member, signature) => signature.IsMatch(member));
-        }
-
-        if (_options.ReturnType is not null)
-        {
-            filters.AddFilter(
-                new ReturnTypeSignature(_options.ReturnType.Resolve(parser)),
-                static (member, signature) => signature.IsMatch(member));
-        }
-
-        if (_options.Decoration is not null)
-        {
-            filters.AddFilter(
-                new DecorationSignature(
-                    SignatureParser.ResolveAttributeTypeName(
-                        _options.Decoration,
-                        _options.ResolutionMap)),
-                static (member, signature) => signature.IsMatch(member));
-        }
-
         if (_options.Abstract && _options.Virtual)
         {
             filters.AddFilter(static (member, _) => member.IsVirtualOrAbstract());
@@ -241,6 +216,33 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
             filters.AddFilter(
                 static (member, _) => member.DeclaringType != typeof(object),
                 FilterOptions.ExcludeNot);
+        }
+    }
+
+    protected override void InitializeOtherFilters(List<Filter<MemberInfo>> filters, SignatureParser parser)
+    {
+        if (_options.ParameterType is not null)
+        {
+            filters.AddFilter(
+                new ParameterTypeSignature(_options.ParameterType.Resolve(parser)),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
+        if (_options.ReturnType is not null)
+        {
+            filters.AddFilter(
+                new ReturnTypeSignature(_options.ReturnType.Resolve(parser)),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
+        if (_options.Decoration is not null)
+        {
+            filters.AddFilter(
+                new DecorationSignature(
+                    SignatureParser.ResolveAttributeTypeName(
+                        _options.Decoration,
+                        _options.ResolutionMap)),
+                static (member, signature) => signature.IsMatch(member));
         }
     }
 }

@@ -81,5 +81,5 @@ Matched Assembly objects will be returned to the pipeline.
 
 [Find-Type](Find-Type.md)
 [Find-Member](Find-Member.md)
-[Find-Namespace](Find-Namespace.md)
 [Get-Parameter](Get-Parameter.md)
+[Format-MemberSignature](Format-MemberSignature.md)

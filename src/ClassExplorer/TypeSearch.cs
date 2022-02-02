@@ -64,7 +64,38 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
         AggregateFilter(pso.BaseObject.GetType(), this);
     }
 
-    protected override void InitializeFilters(List<Filter<Type>> filters)
+    protected override void InitializeFastFilters(List<Filter<Type>> filters, SignatureParser parser)
+    {
+        if (_options.Static || (_options.Abstract && _options.Sealed))
+        {
+            filters.AddFilter(static (type, _) => type.IsAbstract && type.IsSealed);
+        }
+        else if (_options.Abstract)
+        {
+            filters.AddFilter(static (type, _) => type.IsAbstract && !type.IsSealed && !type.IsInterface);
+        }
+        else if (_options.Sealed)
+        {
+            filters.AddFilter(static (type, _) => !type.IsAbstract && type.IsSealed);
+        }
+        else if (_options.Interface)
+        {
+            filters.AddFilter(static (type, _) => type.IsInterface);
+        }
+        else if (_options.ValueType)
+        {
+            filters.AddFilter(static (type, _) => type.IsValueType);
+        }
+
+        if (_options.AccessView is not AccessView.This)
+        {
+            filters.AddFilter(
+                new StrongBox<AccessView>(_options.AccessView),
+                static (type, view) => type.DoesMatchView(view.Value));
+        }
+    }
+
+    protected override void InitializeOtherFilters(List<Filter<Type>> filters, SignatureParser parser)
     {
         if (_options.Namespace is not null)
         {
@@ -98,33 +129,11 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
             }
         }
 
-        if (_options.AccessView is not AccessView.This)
-        {
-            filters.AddFilter(
-                new StrongBox<AccessView>(_options.AccessView),
-                static (m, view) => m.DoesMatchView(view.Value));
-        }
-
-        if (_options.Abstract)
-        {
-            filters.AddFilter(static (m, _) => m.IsAbstract);
-        }
-
-        if (_options.Interface)
-        {
-            filters.AddFilter(static (m, _) => m.IsInterface);
-        }
-
-        if (_options.ValueType)
-        {
-            filters.AddFilter(static (m, _) => m.IsValueType);
-        }
-
         if (_options.Signature is not null)
         {
             filters.AddFilter(
                 _options.Signature,
-                static (m, fc) => fc.IsMatch(m));
+                static (type, signature) => signature.IsMatch(type));
         }
     }
 }

@@ -60,9 +60,11 @@ namespace ClassExplorer.Commands
         public virtual SwitchParameter Not { get; set; }
 
         [Parameter]
+        [Alias("map")]
         public virtual Hashtable ResolutionMap { get; set; } = null!;
 
         [Parameter]
+        [Alias("as")]
         public virtual AccessView AccessView { get; set; }
 
         private bool _hadError;
@@ -99,7 +101,7 @@ namespace ClassExplorer.Commands
                 return;
             }
 
-            if (MyInvocation.ExpectingInput)
+            if (MyInvocation.ExpectingInput || InputObject is not null)
             {
                 return;
             }

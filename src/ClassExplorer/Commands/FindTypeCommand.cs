@@ -49,6 +49,7 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
+        [Alias("fn")]
         public string? FullName
         {
             get => _options.FullName;
@@ -61,7 +62,7 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [Alias("Base")]
-        [ArgumentCompleter(typeof(TypeArgumentCompleter))]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
         public ScriptBlockStringOrType InheritsType { get; set; } = null!;
 
         /// <summary>
@@ -69,27 +70,47 @@ namespace ClassExplorer.Commands
         /// </summary>
         [Parameter]
         [ValidateNotNull]
-        [ArgumentCompleter(typeof(TypeArgumentCompleter))]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
+        [Alias("int")]
         public ScriptBlockStringOrType ImplementsInterface { get; set; } = null!;
 
         [Parameter]
         [ValidateNotNull]
+        [Alias("sig")]
         public ScriptBlockStringOrType Signature { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a value indicating whether to only match abstract classes.
         /// </summary>
         [Parameter]
+        [Alias("a")]
         public SwitchParameter Abstract
         {
             get => _options.Abstract;
             set => _options.Abstract = value;
         }
 
+        [Parameter]
+        [Alias("s")]
+        public SwitchParameter Static
+        {
+            get => _options.Static;
+            set => _options.Static = value;
+        }
+
+        [Parameter]
+        [Alias("se")]
+        public SwitchParameter Sealed
+        {
+            get => _options.Sealed;
+            set => _options.Sealed = value;
+        }
+
         /// <summary>
         /// Gets or sets a value indicating whether to only match interfaces.
         /// </summary>
         [Parameter]
+        [Alias("i")]
         public SwitchParameter Interface
         {
             get => _options.Interface;
@@ -100,6 +121,7 @@ namespace ClassExplorer.Commands
         /// Gets or sets a value indicating whether to only match ValueTypes.
         /// </summary>
         [Parameter]
+        [Alias("vt")]
         public SwitchParameter ValueType
         {
             get => _options.ValueType;

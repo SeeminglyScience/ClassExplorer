@@ -55,6 +55,48 @@ public static class _Format
     }
 
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
+    public static string TypeAndParent(Type value, int maxLength = -1)
+    {
+        SignatureWriter writer = GetWriter(maxLength);
+        writer.TypeInfo(value);
+        Type[] interfaces = value.GetInterfaces();
+        if (value.IsInterface)
+        {
+            if (interfaces is { Length: 0 })
+            {
+                return writer.ToString();
+            }
+
+            writer.Space().Colon().Space().TypeInfo(interfaces[0]);
+            for (int i = 1; i < interfaces.Length; i++)
+            {
+                writer.Comma().Space().TypeInfo(interfaces[i]);
+            }
+
+            return writer.ToString();
+        }
+
+        if (value.BaseType is null)
+        {
+            return writer.ToString();
+        }
+
+        writer.Space().Colon().Space();
+        if (value.IsEnum)
+        {
+            return writer.TypeInfo(value.GetEnumUnderlyingType()).ToString();
+        }
+
+        writer.TypeInfo(value.BaseType);
+        foreach (Type @interface in interfaces)
+        {
+            writer.Comma().Space().TypeInfo(@interface);
+        }
+
+        return writer.ToString();
+    }
+
+    [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
     public static string Type(ParameterInfo value, int maxLength = -1)
     {
         return GetWriter(maxLength).TypeInfo(value).ToString();

@@ -15,13 +15,13 @@ Find properties, methods, fields, etc that fit specific criteria.
 ### ByFilter (Default)
 
 ```powershell
-Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [<CommonParameters>]
+Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [<CommonParameters>]
+Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -35,15 +35,15 @@ The Find-Member cmdlet searches the environment for members that fit specified c
 ```powershell
 Find-Member GetPowerShell
 
-#    ReflectedType: System.Management.Automation.ScriptBlock
+#    ReflectedType: ScriptBlock
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Object[]…
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Boolean …
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
-# GetPowerShell        Method       False    PowerShell GetPowerShell(Dictiona…
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# GetPowerShell         Method       public PowerShell GetPowerShell(object[] args);
+# GetPowerShell         Method       public PowerShell GetPowerShell(bool isTrustedInput, object[]…
+# GetPowerShell         Method       public PowerShell GetPowerShell(Dictionary<string, object> va…
+# GetPowerShell         Method       public PowerShell GetPowerShell(Dictionary<string, object> va…
+# GetPowerShell         Method       public PowerShell GetPowerShell(Dictionary<string, object> va…
 ```
 
 Find all members in the AppDomain with the name "GetPowerShell"
@@ -53,12 +53,12 @@ Find all members in the AppDomain with the name "GetPowerShell"
 ```powershell
 [System.IO.Stream] | Find-Member -ParameterType { [anyof[Span[any], Memory[any]]] }
 
-#    ReflectedType: System.IO.Stream
+#    ReflectedType: Stream
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# ReadAsync            Method       False    ValueTask`1 ReadAsync(Memory`1 bu…
-# Read                 Method       False    Int32 Read(Span`1 buffer)
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# ReadAsync             Method       public virtual ValueTask<int> ReadAsync(Memory<byte> buffer, …
+# Read                  Method       public virtual int Read(Span<byte> buffer);
 ```
 
 Find all members in the AppDomain with the name "GetPowerShell"
@@ -68,19 +68,25 @@ Find all members in the AppDomain with the name "GetPowerShell"
 ```powershell
 Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
 
-#    ReflectedType: System.Management.Automation.Language.UsingExpressionAst
+#    ReflectedType: CommandCompletion
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# ExtractUsingVariable Method        True    VariableExpressionAst ExtractUsin…
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# MapStringInputToPars… Method       public static Tuple<Ast, Token[], IScriptPosition> MapStringI…
 #
-#    ReflectedType: System.Management.Automation.Language.Parser
+#    ReflectedType: UsingExpressionAst
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# ParseFile            Method        True    ScriptBlockAst ParseFile(String f…
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# ExtractUsingVariable  Method       public static VariableExpressionAst ExtractUsingVariable(Usin…
+#
+#    ReflectedType: Parser
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# ParseFile             Method       public static ScriptBlockAst ParseFile(string fileName, out T…
+# ParseInput            Method       public static ScriptBlockAst ParseInput(string input, out Tok…
+# ParseInput            Method       public static ScriptBlockAst ParseInput(string input, string …
 ```
 
 Find all static members in the AppDomain that return any type of AST.
@@ -90,19 +96,17 @@ Find all static members in the AppDomain that return any type of AST.
 ```powershell
 Find-Member -ParameterType runspace -Virtual
 
-#    ReflectedType:
-# System.Management.Automation.Host.IHostSupportsInteractiveSession
+#    ReflectedType: IHostSupportsInteractiveSession
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# PushRunspace         Method       False    Void PushRunspace(Runspace runspa…
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# PushRunspace          Method       public abstract void PushRunspace(Runspace runspace);
 #
-#    ReflectedType:
-# Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
+#    ReflectedType: IPSConsoleReadLineMockableMethods
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# RunspaceIsRemote     Method       False    Boolean RunspaceIsRemote(Runspace…
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# RunspaceIsRemote      Method       public abstract bool RunspaceIsRemote(Runspace runspace);
 ```
 
 Find all virtual members in the AppDomain that take any runspace type as a parameter.
@@ -112,19 +116,38 @@ Find all virtual members in the AppDomain that take any runspace type as a param
 ```powershell
 Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 
-#    ReflectedType: System.Management.Automation.Language.Parser
+#    ReflectedType: Parser
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# ParseFile            Method        True    ScriptBlockAst ParseFile(String f…
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
-# ParseInput           Method        True    ScriptBlockAst ParseInput(String …
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# ParseFile             Method       public static ScriptBlockAst ParseFile(string fileName, out T…
+# ParseInput            Method       public static ScriptBlockAst ParseInput(string input, out Tok…
+# ParseInput            Method       public static ScriptBlockAst ParseInput(string input, string …
 ```
 
 Find all members that start with the word Parse and take Token as a parameter. This example also
 demonstrates how this will even match the element of a type that is both an array and ByRef type.
 
 ### -------------------------- EXAMPLE 6 --------------------------
+
+```powershell
+[runspace] | Find-Member -Force -Abstract | Find-Member -Not -AccessView Child
+
+#    ReflectedType: Runspace
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# GetCurrentlyRunningP… Method       internal abstract Pipeline GetCurrentlyRunningPipeline();
+# SetApplicationPrivat… Method       internal abstract void SetApplicationPrivateData(PSPrimitiveD…
+# GetSessionStateProxy  Method       internal abstract SessionStateProxy GetSessionStateProxy();
+# HasAvailabilityChang… Property     internal abstract bool HasAvailabilityChangedSubscribers { ge…
+# GetExecutionContext   Property     internal abstract ExecutionContext GetExecutionContext { get;…
+# InNestedPrompt        Property     internal abstract bool InNestedPrompt { get; }
+```
+
+Find all members that are required to be implemented (abstract) but cannot be implemented outside of the origin assembly.
+
+### -------------------------- EXAMPLE 7 --------------------------
 
 ```powershell
 $members = Find-Member -Force
@@ -138,12 +161,12 @@ Find all members in the AppDomain including non-public.
 
 ### -Abstract
 
-If specified only abstract members will be matched..
+If specified only abstract members will be matched.
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: a
 
 Required: False
 Position: Named
@@ -196,12 +219,12 @@ Accept wildcard characters: False
 
 ### -IncludeSpecialName
 
-If specified "SpecialName" members will also be matched. This includes accessors like "get_PropertyName", "set_PropertyName", etc.
+If specified "SpecialName" members will also be matched. This most commonly applies to accessors methods such as "get_PropertyName" or "set_PropertyName".
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: isn
 
 Required: False
 Position: Named
@@ -228,12 +251,12 @@ Accept wildcard characters: False
 
 ### -Instance
 
-If specified only members visible on an instance of a class will be matched. In other words, members that are not static.
+If specified only members visible on an instance of a class will be matched.
 
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: i
 
 Required: False
 Position: Named
@@ -249,7 +272,7 @@ Specifies the type of member to return. You can specify multiple member types.
 ```yaml
 Type: MemberTypes
 Parameter Sets: (All)
-Aliases: MT
+Aliases: mt
 Accepted values: Constructor, Event, Field, Method, Property, TypeInfo, Custom, NestedType, All
 
 Required: False
@@ -261,7 +284,9 @@ Accept wildcard characters: False
 
 ### -Name
 
-Specifies the member name to match.
+Specifies the pattern that a member's name must match in order to be returned.
+
+This parameter uses smart casing. If the pattern specified includes any capital letters, the pattern becomes case sensitive.
 
 ```yaml
 Type: String
@@ -305,10 +330,12 @@ Accept wildcard characters: False
 
 Specifies a type that a member must accept as a parameter to be matched. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
 
+This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+
 ```yaml
-Type: Type
+Type: ScriptBlockStringOrType
 Parameter Sets: (All)
-Aliases:
+Aliases: pt
 
 Required: False
 Position: Named
@@ -337,10 +364,30 @@ Accept wildcard characters: False
 
 Specifies a type that a member must return to match. This includes property types, field types, and method return types. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
 
+This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+
 ```yaml
 Type: Type
 Parameter Sets: (All)
-Aliases:
+Aliases: ret, rt
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Decoration
+
+Specifies that a member must be decorated with this attribute for it to be included in results. This search will be done based on type name rather than strict type identity so it is safe to use for embedded attributes.
+
+This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+
+```yaml
+Type: Type
+Parameter Sets: (All)
+Aliases: HasAttr, attr
 
 Required: False
 Position: Named
@@ -356,7 +403,7 @@ If specified only static members will be matched.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: s
 
 Required: False
 Position: Named
@@ -372,7 +419,73 @@ If specified only virtual members will be matched.
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases:
+Aliases: v
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Declared
+
+If specified only members that were declared or overriden by the reflected type will be returned.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: d
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IncludeObject
+
+By default any member that is declared by `object` and not overriden by the reflected (or other base but non-`object`) type will be hidden. This includes members like `ToString()`, `GetHashCode()`, and `Equals()`.
+
+Specifying this parameter will include these members in the results.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: io
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ResolutionMap
+
+Specifies a hashtable of `name` to `ScriptBlockStringOrType` to create your own keywords and/or override type resolution for any signature in this command.
+
+```yaml
+Type:
+Parameter Sets: (All)
+Aliases: map
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -AccessView
+
+Specifies the access perspective (`External`, `SameAssembly`, `Child` and/or `This`) or specific modifier (`Public`, `Internal`, `Protected`, `Private`) to filter results for.
+
+```yaml
+Type: ClassExplorer.AccessView
+Parameter Sets: (All)
+Aliases: as
 
 Required: False
 Position: Named
@@ -383,9 +496,7 @@ Accept wildcard characters: False
 
 ## INPUTS
 
-### ClassExplorer.NamespaceInfo, System.Type, System.Reflection.MemberInfo, PSObject
-
-If you pass NamespaceInfo objects to this cmdlet it will match members from types declared in that namespace.
+### System.Type, System.Reflection.MemberInfo, PSObject
 
 If you pass Type objects to this cmdlet it will match members from that type.
 
@@ -404,6 +515,6 @@ Matched MemberInfo objects will be returned to the pipeline.
 ## RELATED LINKS
 
 [Find-Type](Find-Type.md)
-[Find-Namespace](Find-Namespace.md)
 [Get-Assembly](Get-Assembly.md)
 [Get-Parameter](Get-Parameter.md)
+[Format-MemberSignature](Format-MemberSignature.md)

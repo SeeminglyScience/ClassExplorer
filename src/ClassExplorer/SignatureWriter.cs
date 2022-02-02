@@ -779,7 +779,7 @@ internal class SignatureWriter
         return CloseGeneric();
     }
 
-    public string? GetWellKnownTypeName(Type type)
+    public static string? GetWellKnownTypeName(Type type)
     {
         return type switch
         {
@@ -1885,7 +1885,7 @@ internal class SignatureWriter
         return CloseCurly();
     }
 
-    public string RemoveArity(string name)
+    public static string RemoveArity(string name)
     {
         int index = name.LastIndexOf('`');
         if (index is -1)

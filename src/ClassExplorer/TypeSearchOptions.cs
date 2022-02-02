@@ -12,6 +12,10 @@ internal class TypeSearchOptions : ReflectionSearchOptions
 
     public bool Abstract { get; set; }
 
+    public bool Sealed { get; set; }
+
+    public bool Static { get; set; }
+
     public bool Interface { get; set; }
 
     public bool ValueType { get; set; }
