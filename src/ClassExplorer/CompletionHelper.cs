@@ -129,7 +129,7 @@ namespace ClassExplorer
             }
 
             suffix = default;
-            if (wordToComplete is { Length: 1 })
+            if (prefix is not '\0' && wordToComplete is { Length: 1 })
             {
                 return string.Empty;
             }

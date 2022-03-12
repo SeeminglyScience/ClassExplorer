@@ -414,6 +414,44 @@ keywords:
           - match: false
             sig: void Example(int value);
 
+  - header: "`number`"
+    description: Matches a hard coded list of types representing numbers.
+    examples:
+      - syntax: Find-Type -Signature { [number] }
+        signatures:
+          - match: true
+            sig: public readonly struct SByte
+          - match: true
+            sig: public readonly struct Byte
+          - match: true
+            sig: public readonly struct Int16
+          - match: true
+            sig: public readonly struct UInt16
+          - match: true
+            sig: public readonly struct Int32
+          - match: true
+            sig: public readonly struct UInt32
+          - match: true
+            sig: public readonly struct Int64
+          - match: true
+            sig: public readonly struct UInt64
+          - match: true
+            sig: public readonly struct Single
+          - match: true
+            sig: public readonly struct Double
+          - match: true
+            sig: public readonly struct Half
+          - match: true
+            sig: public readonly struct IntPtr
+          - match: true
+            sig: public readonly struct UIntPtr
+          - match: true
+            sig: public readonly struct BigInteger
+          - match: false
+            sig: public class Object
+          - match: false
+            sig: public readonly struct DateTime
+
   - header: "`decoration`, `hasattr`"
     description: Matches parameters or types decorated with this attribute.
     examples:

@@ -221,6 +221,27 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
 
     protected override void InitializeOtherFilters(List<Filter<MemberInfo>> filters, SignatureParser parser)
     {
+        if (_options.ParameterCount is { Length: > 0 })
+        {
+            filters.AddFilter(
+                new ParameterCountSignature(_options.ParameterCount),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
+        if (_options.GenericParameterCount is { Length: > 0 })
+        {
+            filters.AddFilter(
+                new GenericParameterCountSignature(_options.GenericParameterCount),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
+        if (_options.GenericParameter is not null)
+        {
+            filters.AddFilter(
+                new GenericParameterTypeSignature(_options.GenericParameter.Resolve(parser)),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
         if (_options.ParameterType is not null)
         {
             filters.AddFilter(

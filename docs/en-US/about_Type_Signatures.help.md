@@ -26,6 +26,7 @@ Type signatures are a custom query language built into PowerShell type expressio
 * [Generic Parameters (`T`, `TT`, and `TM`)](#generic-parameters-t-tt-and-tm)
 * [`primitive`](#primitive)
 * [`interface`](#interface)
+* [`number`](#number)
 * [`decoration`, `hasattr`](#decoration-hasattr)
 * [`generic`](#generic)
 * [Resolution Maps](#resolution-maps)
@@ -282,7 +283,7 @@ void Example(IList<FileInfo> files);
 
 <sup>([Back to Top](#keywords))</sup>
 
-Matches anything.
+Matches anything. It's main purpose is as a stand in for generic arguments e.g. `[Span[any]]` to match any type of `Span<>`.
 
 <table>
 <tr>
@@ -2351,6 +2352,258 @@ void Example(int value);
 </tr>
 </table>
 
+## `number`
+
+<sup>([Back to Top](#keywords))</sup>
+
+Matches a hard coded list of types representing numbers.
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Type -Signature { [number] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct SByte
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Byte
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Int16
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct UInt16
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Int32
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct UInt32
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Int64
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct UInt64
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Single
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Double
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct Half
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct IntPtr
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct UIntPtr
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+public readonly struct BigInteger
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+public class Object
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+public readonly struct DateTime
+```
+
+</td>
+</tr>
+</table>
+
 ## `decoration`, `hasattr`
 
 <sup>([Back to Top](#keywords))</sup>
@@ -2457,7 +2710,7 @@ Provides a way to specify a signature that takes arguments for a generic type de
 
 ```powershell
 Find-Member -ParameterType {
-   [generic[exact[Collections.Generic.IList], args[struct]]]
+   [generic[exact[Collections.Generic.IList`1], args[struct]]]
 }
 ```
 
@@ -2482,7 +2735,7 @@ Signature
 <td>
 
 ```csharp
-void Example(IList<int> values);
+void Example(IList<DateTime> values);
 ```
 
 </td>
@@ -2496,7 +2749,7 @@ void Example(IList<int> values);
 <td>
 
 ```csharp
-void Example(List<int> values);
+void Example(List<DateTime> values);
 ```
 
 </td>
@@ -2532,9 +2785,11 @@ $map = @{
    number = {
        [anyof[bigint, [allof[primitive, [not[anyof[bool, char]]]]]]]
    }
+
    anymemory = {
        [anyof[Span[any], ReadOnlySpan[any], Memory[any], ReadOnlyMemory[any]]]
    }
+
    LocalRunspace = (Find-Type LocalRunspace -Force)
 }
 

@@ -15,18 +15,19 @@ Find properties, methods, fields, etc that fit specific criteria.
 ### ByFilter (Default)
 
 ```powershell
-Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+
+Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-The Find-Member cmdlet searches the environment for members that fit specified criteria. You can search in any loaded assemblies, specific types, or filter an existing list of members.
+The Find-Member cmdlet searches the process for type members that fit specified criteria. You can search in any loaded assemblies, specific types, or filter an existing list of members.
 
 ## EXAMPLES
 
@@ -66,6 +67,65 @@ Find all members in the AppDomain with the name "GetPowerShell"
 ### -------------------------- EXAMPLE 3 --------------------------
 
 ```powershell
+Find-Member -ParameterCount 0 -GenericParameter { [T[new]] }
+
+#    ReflectedType: InlineParserList
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# AddIfNotAlready       Method       public void AddIfNotAlready<TItem>();
+#
+#    ReflectedType: ParserList<T, TState>
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# AddIfNotAlready       Method       public void AddIfNotAlready<TItem>();
+#
+#    ReflectedType: OrderedList<T>
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# AddIfNotAlready       Method       public void AddIfNotAlready<TItem>();
+```
+
+Find all methods with no parameters and with a generic parameter with the `new` constraint.
+
+### -------------------------- EXAMPLE 3 --------------------------
+
+```powershell
+Find-Member Emit -ParameterCount ..1, 7..8, 10..
+
+#    ReflectedType: ILGenerator
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# Emit                  Method       public virtual void Emit(OpCode opcode);
+#
+#    ReflectedType: Compilation
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# Emit                  Method       public EmitResult Emit(Stream peStream, St…
+# Emit                  Method       public EmitResult Emit(Stream peStream, St…
+# Emit                  Method       public EmitResult Emit(Stream peStream, St…
+# Emit                  Method       public EmitResult Emit(Stream peStream, St…
+#
+#    ReflectedType: FileSystemExtensions
+#
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# Emit                  Method       public static EmitResult Emit(Compilation …
+```
+
+Find all methods named `Emit` whose parameter count is any of the following:
+
+1. `..1`: Less than or equal to 1
+2. `7..8`: Between 7 and 8 inclusive
+3. `10..`: Greater than or equal to 10
+
+### -------------------------- EXAMPLE 4 --------------------------
+
+```powershell
 Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
 
 #    ReflectedType: CommandCompletion
@@ -91,7 +151,7 @@ Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
 
 Find all static members in the AppDomain that return any type of AST.
 
-### -------------------------- EXAMPLE 4 --------------------------
+### -------------------------- EXAMPLE 5 --------------------------
 
 ```powershell
 Find-Member -ParameterType runspace -Virtual
@@ -111,7 +171,7 @@ Find-Member -ParameterType runspace -Virtual
 
 Find all virtual members in the AppDomain that take any runspace type as a parameter.
 
-### -------------------------- EXAMPLE 5 --------------------------
+### -------------------------- EXAMPLE 6 --------------------------
 
 ```powershell
 Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
@@ -128,7 +188,7 @@ Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 Find all members that start with the word Parse and take Token as a parameter. This example also
 demonstrates how this will even match the element of a type that is both an array and ByRef type.
 
-### -------------------------- EXAMPLE 6 --------------------------
+### -------------------------- EXAMPLE 7 --------------------------
 
 ```powershell
 [runspace] | Find-Member -Force -Abstract | Find-Member -Not -AccessView Child
@@ -147,7 +207,7 @@ demonstrates how this will even match the element of a type that is both an arra
 
 Find all members that are required to be implemented (abstract) but cannot be implemented outside of the origin assembly.
 
-### -------------------------- EXAMPLE 7 --------------------------
+### -------------------------- EXAMPLE 8 --------------------------
 
 ```powershell
 $members = Find-Member -Force
@@ -326,9 +386,61 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -ParameterCount
+
+Specifies the amount of parameters a method must accept to match. This requirement can be expressed in the following ways:
+
+- `1`: Count must be exactly `1`
+- `..3`: Can be `3` or less to match
+- `2..5`: Can be between `2` and `5` inclusive to match
+- `3..`: Can be `3` or greater to match
+
+Multiple range expressions can be specified by separating with `,`. The member will fit the criteria as long at least one range expression matches.
+
+### -GenericParameterCount
+
+Specifies the amount of generic parameters a method must accept to match. This requirement can be expressed in the following ways:
+
+- `1`: Count must be exactly `1`
+- `..3`: Can be `3` or less to match
+- `2..5`: Can be between `2` and `5` inclusive to match
+- `3..`: Can be `3` or greater to match
+
+Multiple range expressions can be specified by separating with `,`. The member will fit the criteria as long at least one range expression matches.
+
+```yaml
+Type: RangeExpression[]
+Parameter Sets: (All)
+Aliases: gpc
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ParameterType
 
 Specifies a type that a member must accept as a parameter to be matched. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
+
+This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+
+```yaml
+Type: ScriptBlockStringOrType
+Parameter Sets: (All)
+Aliases: pt
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -GenericParameter
+
+Specifies a type that a member must accept as a generic type parameter to be matched. This parameter will also match base types, implemented interfaces and other generic constraints.
 
 This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
 

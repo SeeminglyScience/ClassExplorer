@@ -1,15 +1,25 @@
-# ClassExplorer
+<h1 align="center">ClassExplorer</h1>
+
+<p align="center">
+    <sub>
+        Access non-public types and type members as if they were public.
+    </sub>
+    <br /><br />
+    <a title="Commits" href="https://github.com/SeeminglyScience/ClassExplorer/commits/master">
+        <img alt="Build Status" src="https://github.com/SeeminglyScience/ClassExplorer/workflows/build/badge.svg" />
+    </a>
+    <a title="ClassExplorer on PowerShell Gallery" href="https://www.powershellgallery.com/packages/ClassExplorer">
+        <img alt="PowerShell Gallery Version (including pre-releases)" src="https://img.shields.io/powershellgallery/v/ClassExplorer?include_prereleases&label=gallery">
+    </a>
+    <a title="LICENSE" href="https://github.com/SeeminglyScience/ClassExplorer/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/SeeminglyScience/ClassExplorer">
+    </a>
+</p>
 
 ClassExplorer is a PowerShell module that enables quickly searching the AppDomain for classes and members.
 
 This project adheres to the Contributor Covenant [code of conduct](https://github.com/SeeminglyScience/ClassExplorer/tree/master/docs/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior to seeminglyscience@gmail.com.
-
-## Build Status
-
-|AppVeyor (Windows)|CircleCI (Linux)|CodeCov|
-|---|---|---|
-|[![Build status](https://ci.appveyor.com/api/projects/status/enn6rrrq3ds5ebhr/branch/master?svg=true)](https://ci.appveyor.com/project/SeeminglyScience/classexplorer/branch/master)|[![CircleCI](https://circleci.com/gh/SeeminglyScience/ClassExplorer.svg?style=svg)](https://circleci.com/gh/SeeminglyScience/ClassExplorer)|[![codecov](https://codecov.io/gh/SeeminglyScience/ClassExplorer/branch/master/graph/badge.svg)](https://codecov.io/gh/SeeminglyScience/ClassExplorer)|
 
 ## Features
 
@@ -106,27 +116,26 @@ Find-Member -ReturnType System.Management.Automation.Runspaces.RunspaceConnectio
 ### Find something to do with a type
 
 ```powershell
-$takesType = [System.Management.Automation.Runspaces.RunspaceConnectionInfo]
-$givesType = [System.Management.Automation.Runspaces.RunspacePool]
+using namespace System.Management.Automation.Runspaces
 
-Find-Member -ParameterType $takesType -ReturnType $givesType
+Find-Member -ParameterType RunspaceConnectionInfo -ReturnType RunspacePool
 
-#    ReflectedType: System.Management.Automation.Runspaces.RunspaceFactory
+#    ReflectedType: RunspaceFactory
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# CreateRunspacePool   Method        True    RunspacePool CreateRunspacePool(Int32 minRunspaces, ...
-# CreateRunspacePool   Method        True    RunspacePool CreateRunspacePool(Int32 minRunspaces, ...
-# CreateRunspacePool   Method        True    RunspacePool CreateRunspacePool(Int32 minRunspaces, ...
-# CreateRunspacePool   Method        True    RunspacePool CreateRunspacePool(Int32 minRunspaces, ...
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
+# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
+# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
+# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
 #
-#    ReflectedType: System.Management.Automation.Runspaces.RunspacePool
+#    ReflectedType: RunspacePool
 #
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# GetRunspacePools     Method        True    RunspacePool[] GetRunspacePools(RunspaceConnectionIn...
-# GetRunspacePools     Method        True    RunspacePool[] GetRunspacePools(RunspaceConnectionIn...
-# GetRunspacePools     Method        True    RunspacePool[] GetRunspacePools(RunspaceConnectionIn...
+# Name                  MemberType   Definition
+# ----                  ----------   ----------
+# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
+# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
+# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
 ```
 
 ### Get real specific

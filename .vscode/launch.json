@@ -2,8 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Attach",
+            "name": ".NET Attach",
             "type": "coreclr",
+            "request": "attach",
+            "justMyCode": true,
+        },
+        {
+            "name": ".NET Classic Attach",
+            "type": "clr",
+            "request": "attach",
+            "justMyCode": true,
+        },
+        {
+            "name": ".NET Attach (!jmc)",
+            "type": "coreclr",
+            "request": "attach",
+            "justMyCode": false,
+        },
+        {
+            "name": ".NET Classic Attach (!jmc)",
+            "type": "clr",
             "request": "attach",
             "justMyCode": false,
         },

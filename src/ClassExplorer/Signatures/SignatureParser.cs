@@ -222,6 +222,7 @@ namespace ClassExplorer.Signatures
                 Keywords.primitive => new TypeClassification(ClassificationKind.Primitive),
                 Keywords.any => new AnySignature(),
                 Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),
+                Keywords.hasdefault => new HasDefaultSignature(),
                 Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
                 _ => Default(typeName, args),
             };

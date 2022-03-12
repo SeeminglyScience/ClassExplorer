@@ -162,4 +162,7 @@
   <data name="ResolveMapNullValue" xml:space="preserve">
     <value>Cannot convert null to type "System.Type".</value>
   </data>
+  <data name="RangeExpressionInvalidFormat" xml:space="preserve">
+    <value>Input string was not in the correct format. Expected "0", "0..3", "..3" or "0.." where "0" is the start of the range and 3 is the end of the range.</value>
+  </data>
 </root>

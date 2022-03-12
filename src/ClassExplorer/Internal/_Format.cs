@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Management.Automation;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace ClassExplorer.Internal;

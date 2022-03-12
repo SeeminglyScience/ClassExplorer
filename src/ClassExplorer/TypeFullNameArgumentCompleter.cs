@@ -32,9 +32,20 @@ namespace ClassExplorer
                 out char prefix,
                 out char suffix);
 
+            List<CompletionResult> results;
+            if (wordToComplete.AsSpan().IndexOf('.') is not -1)
+            {
+                Search.Types(
+                    new() { FullName = string.Concat(wordToComplete, "*") },
+                    new CreateCompletionResult(prefix, suffix, out results))
+                    .SearchAll();
+
+                return results;
+            }
+
             Search.Types(
-                new() { FullName = string.Concat(wordToComplete, "*") },
-                new CreateCompletionResult(prefix, suffix, out List<CompletionResult> results))
+                new() { Name = string.Concat(wordToComplete, "*") },
+                new CreateCompletionResult(prefix, suffix, out results))
                 .SearchAll();
 
             return results;

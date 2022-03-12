@@ -20,8 +20,6 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Enable null conditional operators
-      run: Enable-ExperimentalFeature PSNullConditionalOperators -ErrorAction Ignore -WarningAction Ignore
     - name: Test and Build
       run: ./build.ps1 -Force -Publish
       env:

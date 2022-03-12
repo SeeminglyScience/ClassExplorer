@@ -268,7 +268,7 @@ internal class SignatureWriter
             _ when type.IsNestedFamANDAssem => Keyword("private protected").Space(),
             _ when type.IsNestedFamORAssem => Keyword("internal protected").Space(),
             _ when type.IsNestedPublic => Keyword("public").Space(),
-            _ => Unreachable.Code<SignatureWriter>(),
+            _ => Keyword("internal").Space(),
         };
     }
 
@@ -494,30 +494,26 @@ internal class SignatureWriter
 
         if (type.IsEnum)
         {
-            object rawValue = value;
-            Type underlyingType = Enum.GetUnderlyingType(type);
-            if (rawValue is Enum)
-            {
-                rawValue = Convert.ChangeType(rawValue, underlyingType);
-            }
-
-            string[] names = Enum.GetNames(type);
-            Array values = Enum.GetValues(type);
-
+            ulong rawValue = EnumHelpers.GetRawValue(value);
+            EnumValue[] values = EnumHelpers.GetEnumValues(type);
             for (int i = 0; i < values.Length; i++)
             {
-                if (Convert.ChangeType(values.GetValue(i), underlyingType)?.Equals(rawValue) is true)
+                if (values[i].Value == rawValue)
                 {
-                    return TypeInfo(type).Dot().MemberName(names[i]);
+                    return TypeInfo(type).Dot().MemberName(values[i].Name);
                 }
             }
 
-            object typedValue = Convert.ChangeType(rawValue, type);
-            string[] parts = Regex.Split(typedValue.ToString(), ", ", RegexOptions.IgnoreCase);
-            if (parts.Length == 1 && Regex.IsMatch(parts[0], "^\\d+$", RegexOptions.IgnoreCase))
+            string? stringValue = EnumHelpers.InternalFlagsFormat(values, rawValue);
+            if (stringValue is null or "")
             {
-                return OpenParen().TypeInfo(type).CloseParen().Append(rawValue.ToString() ?? "0");
+                return OpenParen().TypeInfo(type).CloseParen().Append(value.ToString() ?? "0");
             }
+
+            string[] parts = Regex.Split(
+                stringValue,
+                ", ",
+                RegexOptions.IgnoreCase);
 
             TypeInfo(type).Dot().MemberName(parts[0]);
             for (int i = 1; i < parts.Length; i++)
@@ -605,6 +601,16 @@ internal class SignatureWriter
         if (type.IsPrimitive)
         {
             return Number(value.ToString() ?? "0");
+        }
+
+        if (type.IsValueType && value is 0)
+        {
+            return Keyword("default");
+        }
+
+        if (value == Missing.Value)
+        {
+            return TypeInfo("Missing").Dot().MemberName("Value");
         }
 
         throw new BadImageFormatException(
@@ -758,7 +764,7 @@ internal class SignatureWriter
             TypeInfo(type.ReflectedType).Dot();
         }
 
-        if (!type.IsGenericType)
+        if (!TypeHelpers.TryGetNonHereditaryGenericParameters(type, out ReadOnlySpan<Type> genericArgs))
         {
             if (isForAttribute)
             {
@@ -769,7 +775,6 @@ internal class SignatureWriter
         }
 
         TypeInfo(RemoveArity(type.Name)).OpenGeneric();
-        Type[] genericArgs = type.GetGenericArguments();
         TypeInfo(genericArgs[0], false, isForDefinition);
         for (int i = 1; i < genericArgs.Length; i++)
         {
@@ -1454,6 +1459,29 @@ internal class SignatureWriter
 
         if (method.DeclaringType is null)
         {
+            return false;
+        }
+
+        // Type.GetInterfaceMap(Type) throws if the 'this' is an interface. Which
+        // makes explicit default interface implementations on interfaces a little
+        // bit more tricky to figure out.
+        if (method.DeclaringType.IsInterface)
+        {
+            ReadOnlySpan<char> interfaceName = method.Name.AsSpan()[0..lastDotIndex];
+            foreach (Type implInterface in method.DeclaringType.GetInterfaces())
+            {
+                if (!interfaceName.SequenceEqual(implInterface.FullName.AsSpan()))
+                {
+                    continue;
+                }
+
+                @interface = implInterface;
+                name = method.Name.AsSpan()[(lastDotIndex + 1)..].ToString();
+                return true;
+            }
+
+            @interface = null;
+            name = null;
             return false;
         }
 

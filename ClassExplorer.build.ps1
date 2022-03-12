@@ -92,6 +92,7 @@ task BuildDocs -If { $Discovery.HasDocs } {
     $null = New-ExternalHelp -Path $sourceDocs -OutputPath $releaseDocs
 
     & $GenerateSignatureMarkdown -AboutHelp $releaseDocs\about_Type_Signatures.help.txt
+    & $GenerateSignatureMarkdown $PSScriptRoot\docs\en-US\about_Type_Signatures.help.md
 }
 
 task BuildDll {

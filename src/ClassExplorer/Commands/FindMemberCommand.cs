@@ -19,6 +19,7 @@ namespace ClassExplorer.Commands
     public class FindMemberCommand : FindReflectionObjectCommandBase<MemberInfo>
     {
         private readonly MemberSearchOptions _options = new();
+
         /// <summary>
         /// Gets or sets the parameter type to match.
         /// </summary>
@@ -30,6 +31,41 @@ namespace ClassExplorer.Commands
         {
             get => _options.ParameterType;
             set => _options.ParameterType = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the generic parameter to match.
+        /// </summary>
+        [Parameter]
+        [ValidateNotNull]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
+        [Alias("gp")]
+        public ScriptBlockStringOrType? GenericParameter
+        {
+            get => _options.GenericParameter;
+            set => _options.GenericParameter = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the parameter count to match.
+        /// </summary>
+        [Parameter]
+        [Alias("pc")]
+        public RangeExpression[]? ParameterCount
+        {
+            get => _options.ParameterCount;
+            set => _options.ParameterCount = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the generic parameter count to match.
+        /// </summary>
+        [Parameter]
+        [Alias("gpc")]
+        public RangeExpression[]? GenericParameterCount
+        {
+            get => _options.GenericParameterCount;
+            set => _options.GenericParameterCount = value;
         }
 
         /// <summary>

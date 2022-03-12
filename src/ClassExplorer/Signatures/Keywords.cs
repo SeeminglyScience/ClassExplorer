@@ -35,5 +35,7 @@ namespace ClassExplorer.Signatures
         public const string @new = "new";
         public const string decoration = "decoration";
         public const string hasattr = "hasattr";
+        public const string number = "number";
+        public const string hasdefault = "hasdefault";
     }
 }

@@ -91,7 +91,8 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
         {
             filters.AddFilter(
                 new StrongBox<AccessView>(_options.AccessView),
-                static (type, view) => type.DoesMatchView(view.Value));
+                static (type, view) => type.DoesMatchView(view.Value),
+                WasAccessSpecified ? default : FilterOptions.ExcludeNot | FilterOptions.ExcludePipeFilter);
         }
     }
 
@@ -103,13 +104,13 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
             {
                 filters.AddFilter(
                     StringMatcher.CreateRegex(_options.Namespace),
-                    static (type, matcher) => matcher.IsMatch(type.Namespace));
+                    static (type, matcher) => matcher.IsMatch(type.Namespace ?? ""));
             }
             else
             {
                 filters.AddFilter(
                     StringMatcher.Create(_options.Namespace),
-                    static (type, matcher) => matcher.IsMatch(type.Namespace));
+                    static (type, matcher) => matcher.IsMatch(type.Namespace ?? ""));
             }
         }
 
