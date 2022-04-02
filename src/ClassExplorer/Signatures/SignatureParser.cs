@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
@@ -176,10 +177,10 @@ namespace ClassExplorer.Signatures
                     argsConsumed = true;
                     return new PointerSignature(
                         CreateGenericSignature(kind, position, args),
-                        count: i);
+                        new RangeExpression(i));
                 }
 
-                return new PointerSignature(Parse(newTypeName), count: i);
+                return new PointerSignature(Parse(newTypeName), new RangeExpression(i));
             }
 
             if (_resolutionMap.TryGetValue(typeName.Name, out ScriptBlockStringOrType? input))
@@ -224,6 +225,7 @@ namespace ClassExplorer.Signatures
                 Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),
                 Keywords.hasdefault => new HasDefaultSignature(),
                 Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
+                Keywords.pointer => Consume(ParsePointer(args, typeName), out argsConsumed),
                 _ => Default(typeName, args),
             };
 
@@ -325,6 +327,48 @@ namespace ClassExplorer.Signatures
             }
 
             return new GenericTypeSignature(definition, argSignatures.MoveToImmutable());
+        }
+
+        private ITypeSignature ParsePointer(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+        {
+            if (args.Count is 1)
+            {
+                return new PointerSignature(
+                    Parse(args[0]),
+                    new RangeExpression(1, -1));
+            }
+
+            if (args.Count is not 2)
+            {
+                return ThrowSignatureParseException(
+                    errorPosition.Extent,
+                    SR.PointerBadArgCount);
+            }
+
+            string arityString = args[1].FullName;
+            if (arityString.Length is not > 1 || arityString[0] is not 'a' or 'A')
+            {
+                return ThrowSignatureParseException(
+                    errorPosition.Extent,
+                    SR.PointerBadSecondArg);
+            }
+
+            RangeExpression arity;
+            try
+            {
+                arity = RangeExpression.Parse(arityString[1..]);
+            }
+            catch (PSArgumentException e)
+            {
+                throw new SignatureParseException(
+                    SR.Format(SR.PointerBadRangeExpression, e.Message),
+                    e,
+                    args[1].Extent);
+            }
+
+            return new PointerSignature(
+                Parse(args[0]),
+                arity);
         }
 
         private ITypeSignature ParseSingle(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)

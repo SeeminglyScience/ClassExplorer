@@ -138,6 +138,17 @@
   <data name="GenericBadSecondArg" xml:space="preserve">
     <value>The keyword "generic" requires the second argument to be args[...] (Example: [generic[exact[IReadOnlyDictionary], args[any, any]]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
   </data>
+  <data name="PointerBadArgCount" xml:space="preserve">
+    <value>The keyword "pointer" requires exactly two generic arguments (Example: [pointer[void, a1..2]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="PointerBadSecondArg" xml:space="preserve">
+    <value>The keyword "pointer" requires the second argument to be a range expression prefixed with the letter 'a' (Example: [pointer[void, a1..2]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
+  <data name="PointerBadRangeExpression" xml:space="preserve">
+    <value>Range expression provided for keyword "pointer" is invalid. (Example: [pointer[void, a1..2]]). See https://bit.ly/about-type-signatures or help about_Type_Signatures.
+
+Message: {0}</value>
+  </data>
   <data name="BadArgCount" xml:space="preserve">
     <value>The keyword "{0}" requires exactly one argument. See https://bit.ly/about-type-signatures or help about_Type_Signatures.</value>
   </data>

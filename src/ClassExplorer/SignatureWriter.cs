@@ -526,9 +526,14 @@ internal class SignatureWriter
 
         if (type.IsArray)
         {
-            Keyword("new").OpenSquare().CloseSquare().Space().OpenCurly().Space();
             Array arrayValue = (Array)value;
             Type elementType = type.GetElementType()!;
+            if (arrayValue.Length is 0)
+            {
+                return Keyword("new").Space().TypeInfo(elementType).OpenSquare().Number("0").CloseSquare();
+            }
+
+            Keyword("new").OpenSquare().CloseSquare().Space().OpenCurly().Space();
             AttributeArgument(TypedArgument.AsTypedArgument(arrayValue.GetValue(0), elementType));
             for (int i = 1; i < arrayValue.Length; i++)
             {
@@ -1138,7 +1143,10 @@ internal class SignatureWriter
 
         bool isEnum = type.BaseType == typeof(Enum);
         bool isStruct = type.BaseType == typeof(ValueType);
-        bool isDelegate = typeof(Delegate).IsAssignableFrom(type);
+        bool isDelegate = typeof(Delegate).IsAssignableFrom(type)
+            && type != typeof(Delegate)
+            && type != typeof(MulticastDelegate);
+
         StructLayoutAttribute? layout = type.StructLayoutAttribute;
         LayoutKind defaultLayout = LayoutKind.Auto;
         if (isStruct)

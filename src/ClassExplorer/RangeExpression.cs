@@ -24,6 +24,9 @@ namespace ClassExplorer
         }
 
         public static RangeExpression Parse(string expression)
+            => Parse(expression.AsSpan());
+
+        public static RangeExpression Parse(ReadOnlySpan<char> expression)
         {
             if (TryParse(expression, out RangeExpression? range))
             {
@@ -43,8 +46,11 @@ namespace ClassExplorer
         }
 
         public static bool TryParse(string expression, [NotNullWhen(true)] out RangeExpression? range)
+            => TryParse(expression.AsSpan(), out range);
+
+        public static bool TryParse(ReadOnlySpan<char> expression, [NotNullWhen(true)] out RangeExpression? range)
         {
-            ReadOnlySpan<char> span = expression.AsSpan();
+            ReadOnlySpan<char> span = expression;
             int dotPosition = span.IndexOf('.');
             if (dotPosition is -1)
             {
