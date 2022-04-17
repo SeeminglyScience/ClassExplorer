@@ -92,45 +92,54 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
 
     protected static bool AggregateFilter(TMemberType member, object? state, bool isPipeFilter = false)
     {
-        var context = Unsafe.As<ReflectionSearch<TMemberType, TCallback, TOptions>>(state);
-        if (context._filters.Length is 0)
+        ReflectionSearch<TMemberType, TCallback, TOptions> context =
+            Unsafe.As<ReflectionSearch<TMemberType, TCallback, TOptions>>(state);
+
+        try
         {
+            if (context._filters.Length is 0)
+            {
+                context._callback.Invoke(member);
+                return false;
+            }
+
+            bool not = context._options.Not;
+            foreach (Filter<TMemberType> filter in context._filters)
+            {
+                if (not && (filter.Options & FilterOptions.ExcludeNot) is not 0)
+                {
+                    continue;
+                }
+
+                if (isPipeFilter && (filter.Options & FilterOptions.ExcludePipeFilter) is not 0)
+                {
+                    continue;
+                }
+
+                if (filter.Func(member, filter.State))
+                {
+                    if (not)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (not)
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
             context._callback.Invoke(member);
             return false;
         }
-
-        bool not = context._options.Not;
-        foreach (Filter<TMemberType> filter in context._filters)
+        catch
         {
-            if (not && (filter.Options & FilterOptions.ExcludeNot) is not 0)
-            {
-                continue;
-            }
-
-            if (isPipeFilter && (filter.Options & FilterOptions.ExcludePipeFilter) is not 0)
-            {
-                continue;
-            }
-
-            if (filter.Func(member, filter.State))
-            {
-                if (not)
-                {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (not)
-            {
-                continue;
-            }
-
             return false;
         }
-
-        context._callback.Invoke(member);
-        return false;
     }
 }
