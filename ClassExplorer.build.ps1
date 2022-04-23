@@ -66,6 +66,7 @@ task AssertRequiredModules {
     & $AssertModule Pester 5.3.0 -Force:$Force.IsPresent
     & $AssertModule InvokeBuild 5.8.4 -Force:$Force.IsPresent
     & $AssertModule platyPS 0.14.0 -Force:$Force.IsPresent
+    & $AssertModule powershell-yaml 0.4.2 -Force:$Force.IsPresent
 }
 
 task AssertDevDependencies -Jobs AssertDotNet, AssertOpenCover, AssertRequiredModules
