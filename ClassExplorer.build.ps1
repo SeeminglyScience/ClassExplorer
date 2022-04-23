@@ -102,13 +102,6 @@ task BuildDll {
     & $dotnet publish --configuration $Configuration --framework netcoreapp3.1 --verbosity quiet -nologo
 }
 
-task BuildFormat {
-    # $xmlFolder = '{0}\xml' -f $Folders.Release
-
-    # $null = New-Item $xmlFolder -ItemType Directory
-    # & $CreateFormatDefinitions -Destination $xmlFolder
-}
-
 task CopyToRelease  {
     $powershellSource  = '{0}\*' -f $Folders.PowerShell
     $release           = $Folders.Release
@@ -210,7 +203,7 @@ task DoPublish {
     Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Confirm
 }
 
-task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs, BuildFormat
+task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs
 
 task Test -Jobs Build, DoTest
 
