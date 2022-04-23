@@ -2,7 +2,7 @@
 param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $Version = '5.0.100-rc.2.20462.2',
+    [string] $Version = '7.0.100-preview.2.22153.17',
 
     [Parameter()]
     [switch] $Unix
