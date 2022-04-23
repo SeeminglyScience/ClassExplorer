@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ClassExplorer
 {
@@ -50,6 +51,12 @@ namespace ClassExplorer
 
         public static bool TryParse(ReadOnlySpan<char> expression, [NotNullWhen(true)] out RangeExpression? range)
         {
+            if (expression is ['.', '.'])
+            {
+                range = new RangeExpression(-1);
+                return true;
+            }
+
             ReadOnlySpan<char> span = expression;
             int dotPosition = span.IndexOf('.');
             if (dotPosition is -1)
@@ -118,6 +125,11 @@ fail:
 
         public bool IsInRange(int value)
         {
+            if (_start is 0 or -1 && _end is -1)
+            {
+                return true;
+            }
+
             if (_start == _end)
             {
                 return value == _start;
@@ -129,6 +141,33 @@ fail:
             }
 
             return value >= _start && value <= _end;
+        }
+
+        public override string ToString()
+        {
+            if (_start is 0 or -1 && _end is -1)
+            {
+                return "..";
+            }
+
+            if (_start == _end)
+            {
+                return _start.ToString();
+            }
+
+            StringBuilder text = new();
+            if (_start is not 0 or -1)
+            {
+                text.Append(_start);
+            }
+
+            text.Append("..");
+            if (_end is not -1)
+            {
+                text.Append(_end);
+            }
+
+            return text.ToString();
         }
     }
 }
