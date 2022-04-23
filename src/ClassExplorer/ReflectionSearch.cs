@@ -137,6 +137,14 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
             context._callback.Invoke(member);
             return false;
         }
+        catch (PipelineStoppedException)
+        {
+            throw;
+        }
+        catch (FlowControlException)
+        {
+            throw;
+        }
         catch
         {
             return false;
