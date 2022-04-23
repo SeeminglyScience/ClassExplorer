@@ -265,7 +265,7 @@ Describe 'Type signatures' {
 
         $type |
             Find-Member -ParameterType { [any+] } |
-            Should -BeTheseMembers First, Second, Third
+            Should -BeTheseMembers First, Third
     }
 
     it 'T' {
