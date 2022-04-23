@@ -326,6 +326,26 @@ keywords:
             sig: void Example(int* ptr);
           - match: false
             sig: void Example(object value);
+      - syntax: Find-Member -ReturnType { [pointer[any, a1..]] }
+        signatures:
+          - match: true
+            sig: void** Example();
+          - match: true
+            sig: int* Example();
+          - match: false
+            sig: void Example();
+          - match: false
+            sig: object Example();
+      - syntax: Find-Member -ReturnType { [pointer[any, a2..3]] }
+        signatures:
+          - match: true
+            sig: void** Example();
+          - match: false
+            sig: int* Example();
+          - match: true
+            sig: void*** Example();
+          - match: false
+            sig: void**** Example();
 
   - header: "Generic Parameters (`T`, `TT`, and `TM`)"
     description: "References a generic parameter. `T` matches any kind, `TT` matches generic

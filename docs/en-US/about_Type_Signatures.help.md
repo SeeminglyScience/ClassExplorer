@@ -1875,6 +1875,162 @@ void Example(object value);
 </tr>
 </table>
 
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ReturnType { [pointer[any, a1..]] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void** Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+int* Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+object Example();
+```
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ReturnType { [pointer[any, a2..3]] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void** Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+int* Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void*** Example();
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void**** Example();
+```
+
+</td>
+</tr>
+</table>
+
 ## Generic Parameters (`T`, `TT`, and `TM`)
 
 <sup>([Back to Top](#keywords))</sup>
