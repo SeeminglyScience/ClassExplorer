@@ -1644,9 +1644,9 @@ internal class SignatureWriter
 
     public SignatureWriter StringEscape(string value)
     {
-        return Append(_colors.StringEscape)
+        return Escape(_colors.StringEscape)
             .Append(value)
-            .Append(_colors.String);
+            .Escape(_colors.String);
     }
 
     public SignatureWriter Parameter(ParameterInfo parameter)
