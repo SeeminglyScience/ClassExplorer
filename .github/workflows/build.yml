@@ -27,6 +27,8 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     steps:
+    - name: Check Version
+      run: $PSVersionTable
     - uses: actions/checkout@v1
     - name: Test and Build
       run: ./build.ps1 -Force
