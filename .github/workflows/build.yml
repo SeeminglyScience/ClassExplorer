@@ -29,6 +29,10 @@ jobs:
     steps:
     - name: Check Version
       run: $PSVersionTable
+    - name: Update YamlDotNet
+      run:
+        - Register-PackageSource -Name Nuget.Org -Provider NuGet -Location "https://api.nuget.org/v3/index.json"
+        - Install-Package YamlDotNet
     - uses: actions/checkout@v1
     - name: Test and Build
       run: ./build.ps1 -Force
