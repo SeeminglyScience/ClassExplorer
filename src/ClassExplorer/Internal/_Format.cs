@@ -184,7 +184,9 @@ public static class _Format
     {
         if (value)
         {
-            return Success("\u2713", maxLength);
+            return Success(
+                Environment.GetEnvironmentVariable("CLASS_EXPLORER_TRUE_CHARACTER") ?? "+",
+                maxLength);
         }
 
         return Failure("x", maxLength);
