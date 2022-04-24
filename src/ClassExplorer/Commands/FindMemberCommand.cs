@@ -15,6 +15,7 @@ namespace ClassExplorer.Commands
         typeof(EventInfo),
         typeof(FieldInfo),
         typeof(Type))]
+    [Alias("fime")]
     [Cmdlet(VerbsCommon.Find, "Member", DefaultParameterSetName = "ByFilter")]
     public class FindMemberCommand : FindReflectionObjectCommandBase<MemberInfo>
     {

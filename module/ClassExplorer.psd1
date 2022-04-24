@@ -54,7 +54,7 @@ CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter', '
 VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @('fit', 'fime', 'gasm', 'gpa')
 
 # List of all files packaged with this module
 # FileList = @()
@@ -78,7 +78,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-- Added type signatures, a custom query language built into type expressions. See https://bit.ly/about-type-signatures
+- Added type signatures, a custom query language built into type expressions. See https://seemingly.dev/about-type-signatures
 - A lot of fixes and tweaks
 - Removed Find-Namespace command
 '@

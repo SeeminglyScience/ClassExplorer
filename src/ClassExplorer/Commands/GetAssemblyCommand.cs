@@ -9,6 +9,7 @@ namespace ClassExplorer.Commands
     /// The Get-Assembly cmdlet gets the assemblies currently loaded in the AppDomain.
     /// </summary>
     [OutputType(typeof(Assembly))]
+    [Alias("gasm")]
     [Cmdlet(VerbsCommon.Get, "Assembly")]
     public sealed class GetAssemblyCommand : PSCmdlet
     {

@@ -7,6 +7,7 @@ namespace ClassExplorer.Commands
     /// The Get-Parameter cmdlet get parameters from methods.
     /// </summary>
     [OutputType(typeof(ParameterInfo))]
+    [Alias("gpa")]
     [Cmdlet(VerbsCommon.Get, "Parameter")]
     public class GetParameterCommand : Cmdlet
     {

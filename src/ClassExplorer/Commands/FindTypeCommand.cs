@@ -10,6 +10,7 @@ namespace ClassExplorer.Commands
     /// The FindType cmdlet searches the AppDomain for matching types.
     /// </summary>
     [OutputType(typeof(Type))]
+    [Alias("fit")]
     [Cmdlet(VerbsCommon.Find, "Type", DefaultParameterSetName = "ByFilter")]
     public class FindTypeCommand : FindReflectionObjectCommandBase<Type>
     {
