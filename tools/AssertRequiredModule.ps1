@@ -29,7 +29,7 @@ end {
             return
         }
 
-        Install-PSResource $Name -Version $RequiredVersion -Prerelease:$Prerelease -Quiet:$Force.IsPresent -Scope CurrentUser
+        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force.IsPresent -Scope CurrentUser
         return
     }
 
@@ -43,7 +43,7 @@ end {
     try {
         Import-Module @importModuleSplat -Force
     } catch [System.IO.FileNotFoundException] {
-        Install-PSResource $Name -Version $RequiredVersion -Prerelease:$Prerelease -Quiet:$Force.IsPresent -Scope CurrentUser
+        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force.IsPresent -Scope CurrentUser
         Import-Module @importModuleSplat -Force
     }
 }
