@@ -44,9 +44,9 @@ $script:Discovery = @{
 
 $tools = "$PSScriptRoot\tools"
 $script:GetDotNet = Get-Command $tools\GetDotNet.ps1
-$script:CreateFormatDefinitions = Get-Command $tools\CreateFormatDefinitions.ps1
 $script:AssertModule = Get-Command $tools\AssertRequiredModule.ps1
 $script:GetOpenCover = Get-Command $tools\GetOpenCover.ps1
+$script:GenerateSignatureMarkdown = Get-Command $tools\GenerateSignatureMarkdown.ps1
 
 task AssertDotNet {
     $script:dotnet = & $GetDotNet -Unix:$Discovery.IsUnix
@@ -63,12 +63,15 @@ task AssertOpenCover -If { $GenerateCodeCoverage.IsPresent } {
 }
 
 task AssertRequiredModules {
-    & $AssertModule Pester 4.1.1 -Force:$Force.IsPresent
-    & $AssertModule InvokeBuild 5.0.0 -Force:$Force.IsPresent
-    & $AssertModule platyPS 0.9.0 -Force:$Force.IsPresent
+    & $AssertModule Pester 5.3.0 -Force:$Force.IsPresent
+    & $AssertModule InvokeBuild 5.8.4 -Force:$Force.IsPresent
+    & $AssertModule platyPS 0.14.2 -Force:$Force.IsPresent
+
+    # Cannot import powershell-yaml and platyPS in the same session due to
+    # assembly conflict.
+    & $AssertModule powershell-yaml 0.4.2 -Force:$Force.IsPresent -NoImport
 }
 
-# TODO: Look into replacing this junk with PSDepend
 task AssertDevDependencies -Jobs AssertDotNet, AssertOpenCover, AssertRequiredModules
 
 task Clean {
@@ -82,7 +85,7 @@ task Clean {
     }
 
     $null = New-Item $Folders.Results -ItemType Directory
-    & $dotnet clean
+    & $dotnet clean --verbosity quiet -nologo
 }
 
 task BuildDocs -If { $Discovery.HasDocs } {
@@ -91,20 +94,21 @@ task BuildDocs -If { $Discovery.HasDocs } {
 
     $null = New-Item $releaseDocs -ItemType Directory -Force -ErrorAction SilentlyContinue
     $null = New-ExternalHelp -Path $sourceDocs -OutputPath $releaseDocs
+
+    # Cannot import powershell-yaml and platyPS in the same session due to
+    # assembly conflict.
+    $generateSignatureMarkdownPath = $GenerateSignatureMarkdown.Source
+    Start-Job {
+        & $using:generateSignatureMarkdownPath -AboutHelp $using:releaseDocs\about_Type_Signatures.help.txt
+        & $using:generateSignatureMarkdownPath $using:PSScriptRoot\docs\en-US\about_Type_Signatures.help.md
+    } | Receive-Job -Wait -AutoRemoveJob
 }
 
 task BuildDll {
     if (-not $Discovery.IsUnix) {
-        & $dotnet build --configuration $Configuration --framework net452
+        & $dotnet publish --configuration $Configuration --framework net471 --verbosity quiet -nologo
     }
-    & $dotnet build --configuration $Configuration --framework netcoreapp2.0
-}
-
-task BuildFormat {
-    $xmlFolder = '{0}\xml' -f $Folders.Release
-
-    $null = New-Item $xmlFolder -ItemType Directory
-    & $CreateFormatDefinitions -Destination $xmlFolder
+    & $dotnet publish --configuration $Configuration --framework netcoreapp3.1 --verbosity quiet -nologo
 }
 
 task CopyToRelease  {
@@ -112,8 +116,8 @@ task CopyToRelease  {
     $release           = $Folders.Release
     $releaseDesktopBin = "$release\bin\Desktop"
     $releaseCoreBin    = "$release\bin\Core"
-    $sourceDesktopBin  = '{0}\net452\{1}*' -f $Folders.Build, $Settings.Name
-    $sourceCoreBin     = '{0}\netcoreapp2.0\{1}*' -f $Folders.Build, $Settings.Name
+    $sourceDesktopBin  = '{0}\net471\publish\*' -f $Folders.Build
+    $sourceCoreBin     = '{0}\netcoreapp3.1\publish\*' -f $Folders.Build
     Copy-Item -Path $powershellSource -Destination $release -Recurse -Force
 
     if (-not $Discovery.IsUnix) {
@@ -153,12 +157,12 @@ task DoTest -If { $Discovery.HasTests -and $Settings.ShouldTest } {
 
     if ($GenerateCodeCoverage.IsPresent) {
         # OpenCover needs full pdb's. I'm very open to suggestions for streamlining this...
-        & $dotnet clean
-        & $dotnet build --configuration $Configuration --framework net452 /p:DebugType=Full
+        # & $dotnet clean
+        & $dotnet publish --configuration $Configuration --framework net471 --verbosity quiet -nologo /p:DebugType=Full
 
         $moduleName = $Settings.Name
         $release = '{0}\bin\Desktop\{1}' -f $Folders.Release, $moduleName
-        $coverage = '{0}\net452\{1}' -f $Folders.Build, $moduleName
+        $coverage = '{0}\net471\{1}' -f $Folders.Build, $moduleName
 
         Rename-Item "$release.pdb" -NewName "$moduleName.pdb.tmp"
         Rename-Item "$release.dll" -NewName "$moduleName.dll.tmp"
@@ -208,7 +212,7 @@ task DoPublish {
     Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Confirm
 }
 
-task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs, BuildFormat
+task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs
 
 task Test -Jobs Build, DoTest
 
@@ -219,4 +223,3 @@ task Install -Jobs PreRelease, DoInstall
 task Publish -Jobs PreRelease, DoPublish
 
 task . Build
-

@@ -40,7 +40,7 @@ Get-Assembly *Automation*
 
 # GAC    Version        Location
 # ---    -------        --------
-# True   v4.0.30319     C:\Windows\Microsoft.Net\assembly\GAC_MSIL\System.Management.Automation\v...
+# False  v4.0.30319     C:\Program Files\PowerShell\default\System.Management.…
 ```
 
 Get assemblies that match a wildcard.
@@ -81,5 +81,5 @@ Matched Assembly objects will be returned to the pipeline.
 
 [Find-Type](Find-Type.md)
 [Find-Member](Find-Member.md)
-[Find-Namespace](Find-Namespace.md)
 [Get-Parameter](Get-Parameter.md)
+[Format-MemberSignature](Format-MemberSignature.md)

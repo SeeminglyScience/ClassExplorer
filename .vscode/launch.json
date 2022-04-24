@@ -2,24 +2,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Attach",
-            "type": "clr",
+            "name": ".NET Attach",
+            "type": "coreclr",
             "request": "attach",
-            "processId": "${command:pickProcess}"
+            "justMyCode": true,
         },
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Classic Attach",
             "type": "clr",
+            "request": "attach",
+            "justMyCode": true,
+        },
+        {
+            "name": ".NET Attach (!jmc)",
+            "type": "coreclr",
+            "request": "attach",
+            "justMyCode": false,
+        },
+        {
+            "name": ".NET Classic Attach (!jmc)",
+            "type": "clr",
+            "request": "attach",
+            "justMyCode": false,
+        },
+        {
+            "name": "PowerShell Launch Current File",
+            "type": "PowerShell",
             "request": "launch",
-            "preLaunchTask": "Build",
-            "program": "powershell",
-            "args": [
-                "-NoExit",
-                ". ${workspaceRoot}/debugHarness.ps1"],
-            "cwd": "${workspaceRoot}",
-            "stopAtEntry": false,
-            "console": "externalTerminal"
-        }
+            "script": "${file}",
+            "cwd": "${file}"
+        },
     ]
 }
-

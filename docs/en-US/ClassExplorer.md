@@ -12,15 +12,17 @@ Locale: en-US
 
 ClassExplorer is a PowerShell module that enables quickly searching the AppDomain for classes and members.
 
+## About Topics
+
+### [about_Type_Signatures](about_Type_Signatures.help.md)
+
+Type signatures are a custom query language built into PowerShell type expressions to enable complex searches of the environment. Originally built to more easily search for generic types, but allows for very precise exploration of currently loaded assemblies.
+
 ## ClassExplorer Cmdlets
 
 ### [Find-Member](Find-Member.md)
 
 The Find-Member cmdlet searches the AppDomain for members that fit specified criteria. You can search the entire AppDomain, search in specific types, or filter an existing list of members.
-
-### [Find-Namespace](Find-Namespace.md)
-
-The Find-Namespace cmdlet searches the AppDomain for namespaces that fit a specific criteria. You can search the entire AppDomain, specific assemblies, or get the namespace of specific types or members.
 
 ### [Find-Type](Find-Type.md)
 
@@ -33,3 +35,7 @@ The Get-Assembly cmdlet gets assemblies loaded in the AppDomain.
 ### [Get-Parameter](Get-Parameter.md)
 
 The Get-Parameter cmdlet gets parameter info from a member.
+
+### [Format-MemberSignature](Format-MemberSignature.md)
+
+The Format-MemberSignature cmdlet uses the input reflection objects to generate reference library style C# pseudo code. Use this cmdlet to get a more in depth look at specific member including attribute decorations, generic type constraints, and more.

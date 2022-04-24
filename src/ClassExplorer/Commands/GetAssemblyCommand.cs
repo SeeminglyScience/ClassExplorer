@@ -10,7 +10,7 @@ namespace ClassExplorer.Commands
     /// </summary>
     [OutputType(typeof(Assembly))]
     [Cmdlet(VerbsCommon.Get, "Assembly")]
-    public class GetAssemblyCommand : Cmdlet
+    public sealed class GetAssemblyCommand : PSCmdlet
     {
         /// <summary>
         /// Gets or sets the name to match.
@@ -19,17 +19,22 @@ namespace ClassExplorer.Commands
         [ValidateNotNullOrEmpty]
         [SupportsWildcards]
         [ArgumentCompleter(typeof(AssemblyNameArgumentCompleter))]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
+
+        [Parameter(ValueFromPipeline = true)]
+        public PSObject InputObject { get; set; } = null!;
 
         /// <summary>
-        /// The EndProcessing method.
+        /// The BeginProcessing method.
         /// </summary>
-        protected override void EndProcessing()
+        protected override void BeginProcessing()
         {
-            Assembly[] assemblies =
-                AppDomain
-                    .CurrentDomain
-                    .GetAssemblies();
+            if (MyInvocation.ExpectingInput)
+            {
+                return;
+            }
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
             if (string.IsNullOrEmpty(Name))
             {
@@ -37,20 +42,58 @@ namespace ClassExplorer.Commands
                 return;
             }
 
-            var ignoreCase = StringComparison.CurrentCultureIgnoreCase;
-            if (!WildcardPattern.ContainsWildcardCharacters(Name))
+            Array.Sort(
+                assemblies,
+                static (x, y) =>
+                {
+                    string xLocation = x.IsDynamic ? string.Empty : x.Location;
+                    string yLocation = y.IsDynamic ? string.Empty : y.Location;
+                    return xLocation.CompareTo(yLocation);
+                });
+
+            StringMatcher matcher = StringMatcher.Create(Name);
+            foreach (Assembly assembly in assemblies)
             {
-                WriteObject(
-                    assemblies.Where(assembly => assembly.GetName().Name.Equals(Name, ignoreCase)),
-                    enumerateCollection: true);
+                string assemblyName = assembly.GetName()?.Name ?? string.Empty;
+                if (matcher.IsMatch(assemblyName))
+                {
+                    WriteObject(assembly);
+                }
+            }
+        }
+
+        protected override void ProcessRecord()
+        {
+            if (InputObject is not { BaseObject: not null })
+            {
                 return;
             }
 
-            var pattern = new WildcardPattern(Name, WildcardOptions.IgnoreCase);
+            if (InputObject.BaseObject is Type type)
+            {
+                WriteObject(type.Assembly, enumerateCollection: false);
+                return;
+            }
 
-            WriteObject(
-                assemblies.Where(assembly => pattern.IsMatch(assembly.GetName().Name)),
-                enumerateCollection: true);
+            if (InputObject.BaseObject is MemberInfo member)
+            {
+                WriteObject(member.Module.Assembly, enumerateCollection: false);
+                return;
+            }
+
+            if (InputObject.BaseObject is ParameterInfo parameter)
+            {
+                WriteObject(parameter.Member.Module.Assembly, enumerateCollection: false);
+                return;
+            }
+
+            if (InputObject.BaseObject is Assembly assembly)
+            {
+                WriteObject(assembly, enumerateCollection: false);
+                return;
+            }
+
+            WriteObject(InputObject.BaseObject.GetType().Assembly, enumerateCollection: false);
         }
     }
 }

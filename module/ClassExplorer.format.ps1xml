@@ -1,0 +1,542 @@
+<Configuration>
+    <SelectionSets>
+        <SelectionSet>
+            <Name>MemberInfo</Name>
+            <Types>
+                <TypeName>System.Reflection.MemberInfo</TypeName>
+                <TypeName>System.Reflection.MethodInfo</TypeName>
+                <TypeName>System.Reflection.ConstructorInfo</TypeName>
+                <TypeName>System.Reflection.FieldInfo</TypeName>
+                <TypeName>System.Reflection.EventInfo</TypeName>
+                <TypeName>System.Reflection.PropertyInfo</TypeName>
+            </Types>
+        </SelectionSet>
+    </SelectionSets>
+    <ViewDefinitions>
+        <View>
+            <Name>System.Reflection.ParameterInfo</Name>
+            <ViewSelectedBy>
+                <TypeName>System.Reflection.ParameterInfo</TypeName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Member($PSItem.Member)</ScriptBlock>
+                <Label>Member</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>#</Label>
+                        <Width>1</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Type</Label>
+                        <Width>41</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                        <Width>26</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Default</Label>
+                        <Width>12</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>In</Label>
+                        <Width>3</Width>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Out</Label>
+                        <Width>3</Width>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Opt</Label>
+                        <Width>3</Width>
+                        <Alignment>Center</Alignment>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Position</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem, 41)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($PSItem.Name, 26)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::DefaultValue($PSItem, 12)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::FancyBool($PSItem.IsIn, 3)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::FancyBool($PSItem.IsOut, 3)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::FancyBool($PSItem.IsOptional, 3)</ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>MemberInfo</Name>
+            <ViewSelectedBy>
+                <SelectionSetName>MemberInfo</SelectionSetName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.ReflectedType)</ScriptBlock>
+                <Label>ReflectedType</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                        <Width>21</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Width>12</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Definition</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>MemberType</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    [ClassExplorer.Internal._Format]::Member($PSItem, [Console]::BufferWidth - 21 - 12 - 3)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>System.Type</Name>
+            <ViewSelectedBy>
+                <TypeName>System.RuntimeType</TypeName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.Namespace)</ScriptBlock>
+                <Label>Namespace</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Access</Label>
+                        <Width>13</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Modifiers</Label>
+                        <Width>19</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.IsPublic -or $_.IsNestedPublic) {
+        return 'public'
+    }
+
+    if ($_.IsNotPublic -or $_.IsNestedAssembly) {
+        return 'internal'
+    }
+
+    if ($_.IsNestedFamily) {
+        return 'protected'
+    }
+
+    if ($_.IsNestedFamANDAssem) {
+        return 'private protected'
+    }
+
+    if ($_.IsNestedFamORAssem) {
+        return 'internal protected'
+    }
+
+    if ($_.IsNestedPrivate) {
+        return 'private'
+    }
+
+    return 'unknown'
+})
+
+return [ClassExplorer.Internal._Format]::Keyword($str, 13)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.BaseType -eq [enum]) {
+        return 'enum'
+    }
+
+    if ($_.BaseType -eq [ValueType]) {
+        if ($_.CustomAttributes.AttributeType.Name -contains 'IsReadOnlyAttribute') {
+            'readonly'
+        }
+
+        if ($_.IsByRefLike) {
+            'ref'
+        }
+
+        return 'struct'
+    }
+
+    if ($_.IsInterface) {
+        return 'interface'
+    }
+
+    if ($_.IsSealed -and $_.IsAbstract) {
+        return 'static class'
+    }
+
+    if ($_.IsSealed) {
+        return 'sealed class'
+    }
+
+    if ($_.IsAbstract) {
+        return 'abstract class'
+    }
+
+    return 'class'
+}) -join ' '
+
+return [ClassExplorer.Internal._Format]::Keyword($str)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::TypeAndParent($PSItem, [Console]::BufferWidth - 13 - 19 - 3)</ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>Type-Large</Name>
+            <ViewSelectedBy>
+                <TypeName>System.RuntimeType</TypeName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.Namespace)</ScriptBlock>
+                <Label>Namespace</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Access</Label>
+                        <Width>13</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Modifiers</Label>
+                        <Width>19</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                        <Width>41</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>BaseType</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.IsPublic -or $_.IsNestedPublic) {
+        return 'public'
+    }
+
+    if ($_.IsNotPublic -or $_.IsNestedAssembly) {
+        return 'internal'
+    }
+
+    if ($_.IsNestedFamily) {
+        return 'protected'
+    }
+
+    if ($_.IsNestedFamANDAssem) {
+        return 'private protected'
+    }
+
+    if ($_.IsNestedFamORAssem) {
+        return 'internal protected'
+    }
+
+    if ($_.IsNestedPrivate) {
+        return 'private'
+    }
+
+    return 'unknown'
+})
+
+return [ClassExplorer.Internal._Format]::Keyword($str, 13)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$str = (&amp; {
+    if ($_.BaseType -eq [enum]) {
+        return 'enum'
+    }
+
+    if ($_.BaseType -eq [ValueType]) {
+        if ($_.CustomAttributes.AttributeType.Name -contains 'IsReadOnlyAttribute') {
+            'readonly'
+        }
+
+        if ($_.IsByRefLike) {
+            'ref'
+        }
+
+        return 'struct'
+    }
+
+    if ($_.IsSealed -and $_.IsAbstract) {
+        return 'static class'
+    }
+
+    if ($_.IsSealed) {
+        return 'sealed class'
+    }
+
+    if ($_.IsAbstract) {
+        return 'abstract class'
+    }
+
+    return 'class'
+}) -join ' '
+
+return [ClassExplorer.Internal._Format]::Keyword($str)
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem, 41)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.BaseType, [Console]::BufferWidth - 13 - 19 - 41 - 4) </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>System.Management.Automation.PSMethod</Name>
+            <ViewSelectedBy>
+                <TypeName>System.Management.Automation.PSMethod</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>OverloadDefinitions</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <Wrap>true</Wrap>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+$flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+$adapterDataField = $PSItem.GetType().GetField('adapterData', $flags)
+if ($null -eq $adapterDataField) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$adapterData = $adapterDataField.GetValue($PSItem)
+if ($null -eq $adapterData) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$methodInformationStructuresField = $adapterData.
+    GetType().
+    GetField('methodInformationStructures', $flags)
+
+if ($null -eq $methodInformationStructuresField) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$methodInformationStructures = $methodInformationStructuresField.GetValue($adapterData)
+
+if ($null -eq $methodInformationStructures) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$instanceField = $PSItem.GetType().GetField('instance', $flags)
+if ($null -eq $instanceField) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$instance = $instanceField.GetValue($PSItem)
+$instanceType = $null
+if ($null -ne $instance) {
+    $instanceType = $instance.GetType()
+}
+
+$methodField = $methodInformationStructures[0].GetType().GetField('method', $flags)
+if ($null -eq $methodField) {
+    return $_.OverloadDefinitions -join [System.Environment]::NewLine
+}
+
+$reflectionInfo = foreach ($structure in $methodInformationStructures) {
+    $methodField.GetValue($structure)
+}
+
+$result = foreach ($info in $reflectionInfo) {
+    [ClassExplorer.Internal._Format]::Member($info)
+}
+
+return $result -join [System.Environment]::NewLine
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>System.Reflection.Assembly</Name>
+            <ViewSelectedBy>
+                <TypeName>System.Reflection.Assembly</TypeName>
+            </ViewSelectedBy>
+            <GroupBy>
+                <ScriptBlock>
+if (-not $_.IsDynamic -and $_.Location) {
+    return Split-Path $_.Location
+}
+
+return ''
+                </ScriptBlock>
+                <Label>Directory</Label>
+            </GroupBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Version</Label>
+                        <Width>10</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Name</Label>
+                        <Width>50</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>PublicKeyToken</Label>
+                        <Width>17</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Target</Label>
+                        <Width>6</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Culture</Label>
+                        <Width>7</Width>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Number($_.Version, 10)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($_.Name, 50)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Number($_.PublicKeyToken, 17)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.Target)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Culture</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>AssemblyListView</Name>
+            <ViewSelectedBy>
+                <TypeName>System.Reflection.Assembly</TypeName>
+            </ViewSelectedBy>
+            <ListControl>
+                <ListEntries>
+                    <ListEntry>
+                        <ListItems>
+                            <ListItem>
+                                <Label>Name</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($_.Name)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>FileName</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Version</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Number($_.Version)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>Culture</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <Label>PublicKeyToken</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Number($_.PublicKeyToken)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>Target</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.Target)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>ContentType</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.ContentType)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>NameFlags</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.NameFlags)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>HashAlgorithm</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.HashAlgorithm)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <Label>VersionCompatibility</Label>
+                                <ScriptBlock>[ClassExplorer.Internal._Format]::Variable($_.VersionCompatibility)</ScriptBlock>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>FullName</PropertyName>
+                            </ListItem>
+                            <ListItem>
+                                <PropertyName>Location</PropertyName>
+                            </ListItem>
+                        </ListItems>
+                    </ListEntry>
+                </ListEntries>
+            </ListControl>
+        </View>
+    </ViewDefinitions>
+</Configuration>

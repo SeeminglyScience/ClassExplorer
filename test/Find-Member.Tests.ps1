@@ -11,7 +11,7 @@ Describe 'Find-Member cmdlet tests' {
         }
 
         It 'gets members from a random object' {
-            $results = get-item . | Find-Member
+            $results = Get-Item . | Find-Member
 
             $results | Should -Not -BeNullOrEmpty
             $results | Should -All { $_.ReflectedType -eq [System.IO.DirectoryInfo] }
@@ -101,33 +101,65 @@ Describe 'Find-Member cmdlet tests' {
     It 'filters to virtual members' {
         $results = [runspace] | Find-Member -Virtual
 
-        $results | Should -All { $_.IsVirtual }
+        $results | Should -All {
+            $_.IsVirtual -or $_.GetMethod.IsVirtual -or $_.AddMethod.IsVirtual
+        }
+
         $results | Should -Any { $_.Name -eq 'CreateNestedPipeline' }
-        $results | Should -Any { $_.Name -eq 'GetHashCode' }
     }
 
     It 'filters to abstract' {
         $results = [runspace] | Find-Member -Abstract
 
-        $results | Should -All { $_.IsAbstract }
+        $results | Should -All {
+            $_.IsAbstract -or $_.GetMethod.IsAbstract -or $_.AddMethod.IsAbstract
+        }
+
         $results | Should -Any { $_.Name -eq 'Open' }
         $results | Should -All { $_.Name -ne 'GetHashCode' }
     }
 
     It 'filters to instance' {
-        $results = [powershell] | Find-Member -Instance
+        $type = compile '
+            public static void StaticMethod() { }
 
-        $results | Should -All -Not { $_.IsStatic -or $_.GetMethod.IsStatic }
-        $results | Should -All -Not { $_.Name -eq 'Create' }
-        $results | Should -Any { $_.Name -eq 'AddScript' }
+            public static int StaticProperty { get; set; }
+
+            public static int StaticField;
+
+            public static event System.EventHandler StaticEvent;
+
+            public void InstanceMethod() { }
+
+            public int InstanceProperty { get; set; }
+
+            public int InstanceField;
+
+            public event System.EventHandler InstanceEvent;'
+        $results = $type | Find-Member -Instance
+        $results | Should -BeTheseMembers .ctor, InstanceMethod, InstanceProperty, InstanceField, InstanceEvent
     }
 
     It 'filters to static' {
-        $results = [powershell] | Find-Member -Static
+        $type = compile '
+            public static void StaticMethod() { }
 
-        $results | Should -All { $_.IsStatic -or $_.GetMethod.IsStatic }
-        $results | Should -All { $_.Name -ne 'AddScript' }
-        $results | Should -Any { $_.Name -eq 'Create' }
+            public static int StaticProperty { get; set; }
+
+            public static int StaticField;
+
+            public static event System.EventHandler StaticEvent;
+
+            public void InstanceMethod() { }
+
+            public int InstanceProperty { get; set; }
+
+            public int InstanceField;
+
+            public event System.EventHandler InstanceEvent;'
+        $results = $type | Find-Member -Static
+
+        $results | Should -BeTheseMembers StaticMethod, StaticProperty, StaticField, StaticEvent
     }
 
     It 'gets members for passed objects only once per type' {

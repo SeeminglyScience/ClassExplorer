@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 
@@ -10,7 +9,7 @@ namespace ClassExplorer
     /// <summary>
     /// Provides argument completion for name of a type.
     /// </summary>
-    public class TypeNameArgumentCompleter : IArgumentCompleter
+    public sealed class TypeNameArgumentCompleter : IArgumentCompleter
     {
         /// <summary>
         /// Called by the PowerShell engine to complete a parameter.
@@ -28,18 +27,48 @@ namespace ClassExplorer
             CommandAst commandAst,
             IDictionary fakeBoundParameters)
         {
-            return TypeArgumentCompleter
-                .GetTypesForCompletion(wordToComplete)
-                .Select(NewResult);
+            wordToComplete = CompletionHelper.GetWordToComplete(
+                wordToComplete,
+                out char prefix,
+                out char suffix);
+
+            Search.Types(
+                new() { Name = string.Concat(wordToComplete, "*") },
+                new CreateCompletionResult(prefix, suffix, out List<CompletionResult> results))
+                .SearchAll();
+
+            return results;
         }
 
-        private static CompletionResult NewResult(Type type)
+        private readonly struct CreateCompletionResult : IEnumerationCallback<Type>
         {
-            return new CompletionResult(
-                type.Name,
-                type.Name,
-                CompletionResultType.ParameterValue,
-                type.FullName);
+            private readonly List<CompletionResult> _results;
+
+            private readonly char _prefix;
+
+            private readonly char _suffix;
+
+            public CreateCompletionResult(char prefix, char suffix, out List<CompletionResult> results)
+            {
+                _results = results = new();
+                _prefix = prefix;
+                _suffix = suffix;
+            }
+
+            public void Invoke(Type value)
+            {
+                var (_, list, tip) = CompletionHelper.GetCompletionValue(value);
+                string completionValue = CompletionHelper.FinishCompletionValue(
+                    value.Name,
+                    (_prefix, _suffix));
+
+                _results.Add(
+                    new CompletionResult(
+                        completionValue,
+                        list,
+                        CompletionResultType.ParameterValue,
+                        tip));
+            }
         }
     }
 }

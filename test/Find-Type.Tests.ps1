@@ -82,7 +82,7 @@ Describe 'Find-Type tests' {
     It 'matches by base class' {
         $results = Find-Type -InheritsType System.Management.Automation.Language.Ast
 
-        $results | Should -All { $_.IsSubclassOf([System.Management.Automation.Language.Ast]) }
+        $results | Should -All { [System.Management.Automation.Language.Ast].IsAssignableFrom($PSItem) }
         $results | Should -Not -BeNullOrEmpty
     }
 

@@ -4,6 +4,7 @@ if (-not $PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq 'Desktop') 
     Import-Module "$PSScriptRoot/bin/Core/ClassExplorer.dll"
 }
 
-Get-ChildItem $PSScriptRoot\xml\*.format.ps1xml | ForEach-Object {
-    Update-FormatData -AppendPath $PSItem.FullName
-}
+Update-FormatData -PrependPath $PSScriptRoot\ClassExplorer.format.ps1xml
+Update-TypeData -PrependPath $PSScriptRoot\ClassExplorer.types.ps1xml -ErrorAction Ignore
+
+Export-ModuleMember -Cmdlet Find-Type, Find-Member, Format-MemberSignature, Get-Assembly, Get-Parameter
