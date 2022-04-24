@@ -56,6 +56,14 @@ Set-Location ./ClassExplorer
 ./build.ps1
 ```
 
+## Formatting
+
+This module includes some formatting with syntax highlighting for base types like `MemberInfo`, `Type` and also `PSMethod`:
+
+![Formatting-Example](https://user-images.githubusercontent.com/24977523/164995977-61ccb2bb-a950-4822-bb2d-527153411107.png)
+
+The colors for syntax highlighting is controlled by `PSReadLine` options. See [my dotfiles](https://github.com/SeeminglyScience/dotfiles/blob/d471cc564663d907e128d2bfb0aef454f6a59fa3/Documents/PowerShell/PSReadLine.ps1#L32-L55) for the configuration shown in these examples.
+
 ## Usage
 
 ### Find an accessible version of an abstract type
