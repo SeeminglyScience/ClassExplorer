@@ -42,14 +42,18 @@ Check out our **[documentation](https://github.com/SeeminglyScience/ClassExplore
 Install-Module ClassExplorer -Scope CurrentUser
 ```
 
+### PowerShellGet v3
+
+```powershell
+Install-PSResource ClassExplorer
+```
+
 ### Source
 
 ```powershell
 git clone 'https://github.com/SeeminglyScience/ClassExplorer.git'
 Set-Location ./ClassExplorer
-Install-Module platyPS, Pester, InvokeBuild -Force
-Import-Module platyPS, Pester, InvokeBuild
-Invoke-Build -Task Install
+./build.ps1
 ```
 
 ## Usage
@@ -57,61 +61,39 @@ Invoke-Build -Task Install
 ### Find an accessible version of an abstract type
 
 ```powershell
-$type = Find-Type RunspaceConnectionInfo
-$type
+Find-Type RunspaceConnectionInfo
+```
 
-# IsPublic IsSerial Name                                     BaseType
-# -------- -------- ----                                     --------
-# True     False    RunspaceConnectionInfo                   System.Object
+![Example-1-Results-1](https://user-images.githubusercontent.com/24977523/164984679-8a32dc97-e2a2-46ff-9d4f-e322b866c061.png)
 
-$children = Find-Type -InheritsType $type
-$children
+```powershell
+Find-Type -InheritsType System.Management.Automation.Runspaces.RunspaceConnectionInfo
+```
 
-# IsPublic IsSerial Name                                     BaseType
-# -------- -------- ----                                     --------
-# True     False    WSManConnectionInfo                      System.Management.Automation.Runspac...
-# True     False    NamedPipeConnectionInfo                  System.Management.Automation.Runspac...
-# True     False    SSHConnectionInfo                        System.Management.Automation.Runspac...
-# True     False    VMConnectionInfo                         System.Management.Automation.Runspac...
-# True     False    ContainerConnectionInfo                  System.Management.Automation.Runspac...
+![Example-1-Results-2](https://user-images.githubusercontent.com/24977523/164984851-1a20380d-452f-463f-b21c-2931f9ea852f.png)
 
-$accessible = $children | Find-Type { $_ | Find-Member -MemberType Constructor }
-$accessible
+```powershell
+Find-Type -InheritsType System.Management.Automation.Runspaces.RunspaceConnectionInfo |
+    Find-Type { $_ | Find-Member -MemberType Constructor }
+```
 
-# IsPublic IsSerial Name                                     BaseType
-# -------- -------- ----                                     --------
-# True     False    WSManConnectionInfo                      System.Management.Automation.Runspac...
-# True     False    NamedPipeConnectionInfo                  System.Management.Automation.Runspac...
-# True     False    SSHConnectionInfo                        System.Management.Automation.Runspac...
+![Example-1-Results-3](https://user-images.githubusercontent.com/24977523/164984898-0f5ca28f-a462-45c0-a4f9-1b60f95b7a86.png)
 
-$accessible[1] | Find-Member -MemberType Constructor | Get-Parameter
+```powershell
+[Management.Automation.Runspaces.NamedPipeConnectionInfo] |
+    Find-Member -MemberType Constructor |
+    Get-Parameter
+```
 
-#    Member: Void .ctor(Int32)
-#
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 Int32                          processId                      False False False
-#
-#    Member: Void .ctor(Int32, System.String)
-#
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 Int32                          processId                      False False False
-# 1 String                         appDomainName                  False False False
-#
-#    Member: Void .ctor(Int32, System.String, Int32)
-#
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 Int32                          processId                      False False False
-# 1 String                         appDomainName                  False False False
-# 2 Int32                          openTimeout                    False False False
+![Example-1-Results-4](https://user-images.githubusercontent.com/24977523/164985845-4e7830ff-8507-46dd-b3a5-908aaa38a135.png)
 
+```powershell
 # Or, alternatively this will return all constructors, properties, methods, etc that return any
 # implementation of RunspaceConnectionInfo.
 Find-Member -ReturnType System.Management.Automation.Runspaces.RunspaceConnectionInfo
-
 ```
+
+![Example-1-Results-5](https://user-images.githubusercontent.com/24977523/164985973-4c011ee8-6107-4126-9984-ffa595b0ad58.png)
 
 ### Find something to do with a type
 
@@ -119,63 +101,29 @@ Find-Member -ReturnType System.Management.Automation.Runspaces.RunspaceConnectio
 using namespace System.Management.Automation.Runspaces
 
 Find-Member -ParameterType RunspaceConnectionInfo -ReturnType RunspacePool
-
-#    ReflectedType: RunspaceFactory
-#
-# Name                  MemberType   Definition
-# ----                  ----------   ----------
-# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
-# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
-# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
-# CreateRunspacePool    Method       public static RunspacePool CreateRunspacePool(int minRunspaces…
-#
-#    ReflectedType: RunspacePool
-#
-# Name                  MemberType   Definition
-# ----                  ----------   ----------
-# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
-# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
-# GetRunspacePools      Method       public static RunspacePool[] GetRunspacePools(RunspaceConnecti…
 ```
+
+![Example-2-Results](https://user-images.githubusercontent.com/24977523/164986057-ca7cfba9-182b-4c99-8dd2-a33941922b54.png)
+
+### Use type signature queries
+
+See [about_Type_Signatures.help.md](./docs/en-US/about_Type_Signatures.help.md)
+
+```powershell
+Find-Member -ReturnType { [ReadOnlySpan[byte]] } -ParameterType { [ReadOnlySpan[any]] }
+```
+
+![Example-3-Results](https://user-images.githubusercontent.com/24977523/164994773-84f42529-9a8d-46e8-8982-f42f054c2a80.png)
 
 ### Get real specific
 
 ```powershell
-$findMemberSplat = @{
-    MemberType        = 'Method'
-    RegularExpression = $true
-    Name              = '^(?!Should(Continue|Process))'
-    ReturnType        = [bool]
-    ParameterType     = [string]
-    Instance          = $true
-}
-
-Find-Member @findMemberSplat -FilterScript {
-    $parameters = $_ | Get-Parameter
-    $parameters.ParameterType.IsByRef -contains $true -and
-    $parameters.Count -gt 3
-}
-
-#    ReflectedType: System.ComponentModel.MaskedTextProvider
-#
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# InsertAt             Method       False    Boolean InsertAt(String input, Int32 position, Int32...
-# Replace              Method       False    Boolean Replace(String input, Int32 position, Int32&...
-# Replace              Method       False    Boolean Replace(String input, Int32 startPosition, I...
-#
-#    ReflectedType: System.Web.Util.RequestValidator
-#
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# InvokeIsValidRequ... Method       False    Boolean InvokeIsValidRequestString(HttpContext conte...
-#
-#    ReflectedType: System.Activities.XamlIntegration.ICompiledExpressionRoot
-#
-# Name                 MemberType  IsStatic  Definition
-# ----                 ----------  --------  ----------
-# CanExecuteExpression Method       False    Boolean CanExecuteExpression(String expressionText, ...
+Find-Member -MemberType Method -Instance -ParameterType string -ReturnType bool -ParameterCount 4.. |
+    Find-Member -ParameterType { [anyref] [any] } |
+    Find-Member -Not -RegularExpression 'Should(Continue|Process)'
 ```
+
+![Example-4-Results](https://user-images.githubusercontent.com/24977523/164995061-21e0c627-fd05-43d4-b831-f901bfc31fd2.png)
 
 ## Contributions Welcome!
 
