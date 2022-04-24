@@ -204,12 +204,20 @@ task DoPublish {
         throw 'Configuration must not be Debug to publish!'
     }
 
-    if (-not (Test-Path $env:USERPROFILE\.PSGallery\apikey.xml)) {
+    if ($env:GALLERY_API_KEY) {
+        $apiKey = $env:GALLERY_API_KEY
+    } else {
+        $userProfile = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+        if (Test-Path $userProfile/.PSGallery/apikey.xml) {
+            $apiKey = (Import-Clixml $userProfile/.PSGallery/apikey.xml).GetNetworkCredential().Password
+        }
+    }
+
+    if (-not $apiKey) {
         throw 'Could not find PSGallery API key!'
     }
 
-    $apiKey = (Import-Clixml $env:USERPROFILE\.PSGallery\apikey.xml).GetNetworkCredential().Password
-    Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Confirm
+    Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Force:$Force.IsPresent
 }
 
 task Build -Jobs AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs

@@ -31,7 +31,7 @@ jobs:
       run: $PSVersionTable
     - uses: actions/checkout@v1
     - name: Test and Build
-      run: ./build.ps1 -Force
+      run: ./build.ps1 -Force -Configuration Release
     - uses: actions/upload-artifact@v1
       if: matrix.os == 'windows-latest'
       with:
