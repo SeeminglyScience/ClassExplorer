@@ -21,14 +21,15 @@ ClassExplorer is a PowerShell module that enables quickly searching the AppDomai
 This project adheres to the Contributor Covenant [code of conduct](https://github.com/SeeminglyScience/ClassExplorer/tree/master/docs/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior to seeminglyscience@gmail.com.
 
-## Features
+## Why
 
-- Quickly find specific classes, methods, properties, etc
-- Use builtin parameters that utilize compiled filters for performance
-- Create a fully custom search using a ScriptBlock
-- Supported for PowerShell Core (tested in Windows and Linux)
-- Type name completion on any Type parameters
-- All string parameters accept wildcards (or regex with a switch parameter)
+Whenever you're working with a new library you may frequently come across a scenario where you:
+
+1. Have an object of a specific type that you're unsure what accepts it
+1. Need an object of a specific type, and you don't know what returns it
+1. Are looking for an example of a method that fits a certain signature
+
+This module was created to make all of those problems easy to solve without being forced to look at documentation online.
 
 ## Documentation
 
