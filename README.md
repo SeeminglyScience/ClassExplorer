@@ -2,7 +2,7 @@
 
 <p align="center">
     <sub>
-        Access non-public types and type members as if they were public.
+        Discover the API you need with ease.
     </sub>
     <br /><br />
     <a title="Commits" href="https://github.com/SeeminglyScience/ClassExplorer/commits/master">
