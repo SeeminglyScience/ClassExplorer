@@ -65,8 +65,11 @@ task AssertOpenCover -If { $GenerateCodeCoverage.IsPresent } {
 task AssertRequiredModules {
     & $AssertModule Pester 5.3.0 -Force:$Force.IsPresent
     & $AssertModule InvokeBuild 5.8.4 -Force:$Force.IsPresent
-    & $AssertModule platyPS 0.14.0 -Force:$Force.IsPresent
-    & $AssertModule powershell-yaml 0.4.2 -Force:$Force.IsPresent
+    & $AssertModule platyPS 0.14.2 -Force:$Force.IsPresent
+
+    # Cannot import powershell-yaml and platyPS in the same session due to
+    # assembly conflict.
+    & $AssertModule powershell-yaml 0.4.2 -Force:$Force.IsPresent -NoImport
 }
 
 task AssertDevDependencies -Jobs AssertDotNet, AssertOpenCover, AssertRequiredModules
@@ -92,8 +95,13 @@ task BuildDocs -If { $Discovery.HasDocs } {
     $null = New-Item $releaseDocs -ItemType Directory -Force -ErrorAction SilentlyContinue
     $null = New-ExternalHelp -Path $sourceDocs -OutputPath $releaseDocs
 
-    & $GenerateSignatureMarkdown -AboutHelp $releaseDocs\about_Type_Signatures.help.txt
-    & $GenerateSignatureMarkdown $PSScriptRoot\docs\en-US\about_Type_Signatures.help.md
+    # Cannot import powershell-yaml and platyPS in the same session due to
+    # assembly conflict.
+    $generateSignatureMarkdownPath = $GenerateSignatureMarkdown.Source
+    Start-Job {
+        & $using:generateSignatureMarkdownPath -AboutHelp $using:releaseDocs\about_Type_Signatures.help.txt
+        & $using:generateSignatureMarkdownPath $using:PSScriptRoot\docs\en-US\about_Type_Signatures.help.md
+    } | Receive-Job -Wait -AutoRemoveJob
 }
 
 task BuildDll {

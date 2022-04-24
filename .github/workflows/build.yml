@@ -29,9 +29,6 @@ jobs:
     steps:
     - name: Check Version
       run: $PSVersionTable
-    - name: Update YamlDotNet
-      run: |
-        Install-Package YamlDotNet -Force -Scope CurrentUser
     - uses: actions/checkout@v1
     - name: Test and Build
       run: ./build.ps1 -Force
