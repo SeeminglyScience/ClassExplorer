@@ -320,7 +320,7 @@ end {
             AppendLineNoIndent().
             AppendLine('LONG DESCRIPTION').
             Wrap(76, $yaml['long']).AppendLine().
-            Wrap(76, 'See https://bit.ly/about-type-signatures for a markdown version of this document.').
+            Wrap(76, 'See https://seemingly.dev/about-type-signatures for a markdown version of this document.').
             AppendLine()
     }
 
