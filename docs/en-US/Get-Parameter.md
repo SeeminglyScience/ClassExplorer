@@ -27,26 +27,23 @@ The Get-Parameter cmdlet gets parameter info from a member.
 ```powershell
 [powershell] | Find-Member Create | Get-Parameter
 
-#    Member: System.Management.Automation.PowerShell
-# Create(System.Management.Automation.RunspaceMode)
+#    Member: public static PowerShell Create(RunspaceMode runspace);
 #
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 RunspaceMode                   runspace                       False False False
+# # Type                   Name                       Default      In  Out Opt
+# - ----                   ----                       -------      --  --- ---
+# 0 RunspaceMode           runspace                                 x   x   x
 #
-#    Member: System.Management.Automation.PowerShell
-# Create(System.Management.Automation.Runspaces.InitialSessionState)
+#    Member: public static PowerShell Create(InitialSessionState initialSessionState);
 #
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 InitialSessionState            initialSessionState            False False False
+# # Type                   Name                       Default      In  Out Opt
+# - ----                   ----                       -------      --  --- ---
+# 0 InitialSessionState    initialSessionState                      x   x   x
 #
-#    Member: System.Management.Automation.PowerShell
-# Create(System.Management.Automation.Runspaces.Runspace)
+#    Member: public static PowerShell Create(Runspace runspace);
 #
-# # ParameterType                  Name                           IsIn  IsOut IsOpt
-# - -------------                  ----                           ----  ----- -----
-# 0 Runspace                       runspace                       False False False
+# # Type                   Name                       Default      In  Out Opt
+# - ----                   ----                       -------      --  --- ---
+# 0 Runspace               runspace                                 x   x   x
 ```
 
 Get parameters for all overloads of the PowerShell.Create method.

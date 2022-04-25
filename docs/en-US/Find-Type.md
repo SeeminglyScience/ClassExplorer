@@ -153,7 +153,7 @@ Accept wildcard characters: True
 
 ### -ImplementsInterface
 
-Specifies a interface that the type must implement to match. This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+Specifies a interface that the type must implement to match. This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: ClassExplorer.ScriptBlockStringOrType
@@ -169,7 +169,7 @@ Accept wildcard characters: False
 
 ### -InheritsType
 
-Specifies a type that the type must inherit to match. This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+Specifies a type that the type must inherit to match. This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: ClassExplorer.ScriptBlockStringOrType
@@ -185,7 +185,7 @@ Accept wildcard characters: False
 
 ### -Signature
 
-Specifies a type signature to match. See [about_Type_Signatures](https://bit.ly/about-type-signatures).
+Specifies a type signature to match. See [about_Type_Signatures](https://seemingly.dev/about-type-signatures).
 
 ```yaml
 Type: ClassExplorer.ScriptBlockStringOrType
@@ -411,7 +411,7 @@ Accept wildcard characters: False
 
 If you pass assemblies to this cmdlet it will match types from that assembly.
 
-If you pass Type objects as input this cmdlet will return the input if it matches the specified criteria.  You can use this to chain Find-Type commands to filter output.
+If you pass Type objects as input this cmdlet will return the input if it matches the specified criteria. You can use this to chain Find-Type commands to filter output.
 
 If you pass any other object to this cmdlet it will return the type of that object.
 

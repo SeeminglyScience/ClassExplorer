@@ -62,7 +62,7 @@ Find all members in the AppDomain with the name "GetPowerShell"
 # Read                  Method       public virtual int Read(Span<byte> buffer);
 ```
 
-Find all members in the AppDomain with the name "GetPowerShell"
+Find all members that take a `Span<>` or a `Memory<>` as a parameter.
 
 ### -------------------------- EXAMPLE 3 --------------------------
 
@@ -90,7 +90,7 @@ Find-Member -ParameterCount 0 -GenericParameter { [T[new]] }
 
 Find all methods with no parameters and with a generic parameter with the `new` constraint.
 
-### -------------------------- EXAMPLE 3 --------------------------
+### -------------------------- EXAMPLE 4 --------------------------
 
 ```powershell
 Find-Member Emit -ParameterCount ..1, 7..8, 10..
@@ -123,7 +123,7 @@ Find all methods named `Emit` whose parameter count is any of the following:
 2. `7..8`: Between 7 and 8 inclusive
 3. `10..`: Greater than or equal to 10
 
-### -------------------------- EXAMPLE 4 --------------------------
+### -------------------------- EXAMPLE 5 --------------------------
 
 ```powershell
 Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
@@ -151,7 +151,7 @@ Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
 
 Find all static members in the AppDomain that return any type of AST.
 
-### -------------------------- EXAMPLE 5 --------------------------
+### -------------------------- EXAMPLE 6 --------------------------
 
 ```powershell
 Find-Member -ParameterType runspace -Virtual
@@ -171,7 +171,7 @@ Find-Member -ParameterType runspace -Virtual
 
 Find all virtual members in the AppDomain that take any runspace type as a parameter.
 
-### -------------------------- EXAMPLE 6 --------------------------
+### -------------------------- EXAMPLE 7 --------------------------
 
 ```powershell
 Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
@@ -188,7 +188,7 @@ Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 Find all members that start with the word Parse and take Token as a parameter. This example also
 demonstrates how this will even match the element of a type that is both an array and ByRef type.
 
-### -------------------------- EXAMPLE 7 --------------------------
+### -------------------------- EXAMPLE 8 --------------------------
 
 ```powershell
 [runspace] | Find-Member -Force -Abstract | Find-Member -Not -AccessView Child
@@ -207,7 +207,7 @@ demonstrates how this will even match the element of a type that is both an arra
 
 Find all members that are required to be implemented (abstract) but cannot be implemented outside of the origin assembly.
 
-### -------------------------- EXAMPLE 8 --------------------------
+### -------------------------- EXAMPLE 9 --------------------------
 
 ```powershell
 $members = Find-Member -Force
@@ -397,6 +397,18 @@ Specifies the amount of parameters a method must accept to match. This requireme
 
 Multiple range expressions can be specified by separating with `,`. The member will fit the criteria as long at least one range expression matches.
 
+```yaml
+Type: RangeExpression[]
+Parameter Sets: (All)
+Aliases: pc
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -GenericParameterCount
 
 Specifies the amount of generic parameters a method must accept to match. This requirement can be expressed in the following ways:
@@ -424,7 +436,7 @@ Accept wildcard characters: False
 
 Specifies a type that a member must accept as a parameter to be matched. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
 
-This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: ScriptBlockStringOrType
@@ -442,7 +454,7 @@ Accept wildcard characters: False
 
 Specifies a type that a member must accept as a generic type parameter to be matched. This parameter will also match base types, implemented interfaces and other generic constraints.
 
-This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: ScriptBlockStringOrType
@@ -476,7 +488,7 @@ Accept wildcard characters: False
 
 Specifies a type that a member must return to match. This includes property types, field types, and method return types. This parameter will also match base types, implemented interfaces, and the element type of array, byref, pointer and generic types.
 
-This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: Type
@@ -494,7 +506,7 @@ Accept wildcard characters: False
 
 Specifies that a member must be decorated with this attribute for it to be included in results. This search will be done based on type name rather than strict type identity so it is safe to use for embedded attributes.
 
-This can also be a type signature (see [about_Type_Signatures](https://bit.ly/about-type-signatures)).
+This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
 
 ```yaml
 Type: Type

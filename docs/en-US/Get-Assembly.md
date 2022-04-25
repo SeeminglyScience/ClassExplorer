@@ -38,9 +38,11 @@ Get all assemblies loaded into the current AppDomain
 ```powershell
 Get-Assembly *Automation*
 
-# GAC    Version        Location
-# ---    -------        --------
-# False  v4.0.30319     C:\Program Files\PowerShell\default\System.Management.…
+#    Directory: C:\Program Files\PowerShell\7-preview
+
+# Version    Name                           PublicKeyToken    Target Culture
+# -------    ----                           --------------    ------ -------
+# 7.3.0.3    System.Management.Automation   31bf3856ad364e35  MSIL   neutral
 ```
 
 Get assemblies that match a wildcard.
