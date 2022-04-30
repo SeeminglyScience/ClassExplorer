@@ -55,9 +55,40 @@ namespace ClassExplorer.Signatures
                 return false;
             }
 
-            if ((Kind & ClassificationKind.Pointer) != 0 && !type.IsPointer)
+            if ((Kind & ClassificationKind.Abstract) != 0 && (!type.IsAbstract || type.IsInterface))
             {
                 return false;
+            }
+
+            if ((Kind & ClassificationKind.Concrete) != 0 && !IsConcrete(type))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IsConcrete(Type type)
+        {
+            if (type is not { IsAbstract: false, IsInterface: false, IsGenericParameter: false })
+            {
+                return false;
+            }
+
+            if (type.IsGenericType)
+            {
+                foreach (Type genericArg in type.GetGenericArguments())
+                {
+                    if (!IsConcrete(genericArg))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            if (type.HasElementType)
+            {
+                return IsConcrete(type.GetElementType()!);
             }
 
             return true;

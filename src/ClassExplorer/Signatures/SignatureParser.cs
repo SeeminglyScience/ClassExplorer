@@ -220,6 +220,8 @@ namespace ClassExplorer.Signatures
                 Keywords.@enum => new TypeClassification(ClassificationKind.Enum),
                 Keywords.referencetype => new TypeClassification(ClassificationKind.ReferenceType),
                 Keywords.@interface => new TypeClassification(ClassificationKind.Interface),
+                Keywords.@abstract => new TypeClassification(ClassificationKind.Abstract),
+                Keywords.concrete => new TypeClassification(ClassificationKind.Concrete),
                 Keywords.primitive => new TypeClassification(ClassificationKind.Primitive),
                 Keywords.any => new AnySignature(),
                 Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),

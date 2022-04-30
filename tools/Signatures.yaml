@@ -434,6 +434,42 @@ keywords:
           - match: false
             sig: void Example(int value);
 
+  - header: "`abstract`"
+    description: Matches only abstract types.
+    examples:
+      - syntax: Find-Member -ParameterType { [abstract] }
+        signatures:
+          - match: false
+            sig: void Example(IDisposable disposable);
+          - match: false
+            sig: void Example(object obj);
+          - match: false
+            sig: void Example(int value);
+          - match: false
+            sig: void Example(T value);
+          - match: true
+            sig: void Example(FileSystemInfo value);
+          - match: true
+            sig: void Example(FileInfo value);
+
+  - header: "`concrete`"
+    description: Matches only concrete types. No abstract classes, interfaces, or generic parameters.
+    examples:
+      - syntax: Find-Member -ParameterType { [abstract] }
+        signatures:
+          - match: false
+            sig: void Example(IDisposable disposable);
+          - match: true
+            sig: void Example(object obj);
+          - match: true
+            sig: void Example(int value);
+          - match: false
+            sig: void Example(T value);
+          - match: false
+            sig: void Example(FileSystemInfo value);
+          - match: true
+            sig: void Example(FileInfo value);
+
   - header: "`number`"
     description: Matches a hard coded list of types representing numbers.
     examples:
