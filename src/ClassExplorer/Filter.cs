@@ -32,4 +32,6 @@ internal enum FilterOptions
     ExcludeNot = 1 << 0,
 
     ExcludePipeFilter = 1 << 1,
+
+    DoNotInverseNot = 1 << 2,
 }
