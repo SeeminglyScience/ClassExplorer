@@ -9,36 +9,25 @@ namespace ClassExplorer
     {
         public static bool IsVirtualOrAbstract(this MemberInfo member)
         {
-            if (member is MethodInfo method)
+            return member switch
             {
-                return method.IsVirtual || method.IsAbstract;
-            }
-
-            if (member is PropertyInfo property)
-            {
-                MethodInfo? accessor = property.GetFirstMethod();
-                return accessor?.IsVirtual is true || accessor?.IsAbstract is true;
-            }
-
-            if (member is EventInfo eventInfo)
-            {
-                MethodInfo? accessor = eventInfo.GetFirstMethod();
-                return accessor?.IsVirtual is true || accessor?.IsAbstract is true;
-            }
-
-            return false;
+                MethodInfo method => method.IsVirtualOrAbstract(),
+                PropertyInfo property => property.GetFirstMethod().IsVirtualOrAbstract(),
+                EventInfo eventInfo => eventInfo.GetFirstMethod().IsVirtualOrAbstract(),
+                _ => false,
+            };
         }
 
-        public static bool IsVirtualOrAbstract(this MethodInfo method)
-            => method.IsVirtual || method.IsAbstract;
+        public static bool IsVirtualOrAbstract(this MethodInfo? method)
+            => method is { IsFinal: false } and ({ IsVirtual: true } or { IsAbstract: true });
 
         public static bool IsVirtual(this MemberInfo member)
         {
             return member switch
             {
-                MethodInfo method => method.IsVirtual,
-                PropertyInfo property => property.GetFirstMethod()?.IsVirtual is true,
-                EventInfo eventInfo => eventInfo.GetFirstMethod()?.IsVirtual is true,
+                MethodInfo method => method is { IsVirtual: true, IsFinal: false, IsAbstract: false },
+                PropertyInfo property => property.GetFirstMethod() is { IsVirtual: true, IsFinal: false, IsAbstract: false },
+                EventInfo eventInfo => eventInfo.GetFirstMethod() is { IsVirtual: true, IsFinal: false, IsAbstract: false },
                 _ => false,
             };
         }

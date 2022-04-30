@@ -105,7 +105,9 @@ Describe 'Find-Member cmdlet tests' {
             $_.IsVirtual -or $_.GetMethod.IsVirtual -or $_.AddMethod.IsVirtual
         }
 
-        $results | Should -Any { $_.Name -eq 'CreateNestedPipeline' }
+        $results | Should -Any { $_.Name -eq 'Debugger' }
+        $results | Should -Any { $_.Name -eq 'ResetRunspaceState' }
+        $results | Should -Not -Any { $_.Name -eq 'CreateNestedPipeline' }
     }
 
     It 'filters to abstract' {
