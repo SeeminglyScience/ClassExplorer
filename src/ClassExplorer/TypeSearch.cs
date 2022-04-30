@@ -92,7 +92,7 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
             filters.AddFilter(
                 new StrongBox<AccessView>(_options.AccessView),
                 static (type, view) => type.DoesMatchView(view.Value),
-                WasAccessSpecified ? default : FilterOptions.ExcludeNot | FilterOptions.ExcludePipeFilter);
+                WasAccessSpecified ? default : FilterOptions.DoNotInverseNot | FilterOptions.ExcludePipeFilter);
         }
     }
 

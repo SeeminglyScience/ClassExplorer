@@ -118,7 +118,7 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
 
                 if (filter.Func(member, filter.State))
                 {
-                    if (not)
+                    if (not && (filter.Options & FilterOptions.DoNotInverseNot) is 0)
                     {
                         return false;
                     }
@@ -126,7 +126,7 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
                     continue;
                 }
 
-                if (not)
+                if (not && (filter.Options & FilterOptions.DoNotInverseNot) is 0)
                 {
                     continue;
                 }
