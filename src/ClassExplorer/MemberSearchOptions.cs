@@ -31,4 +31,6 @@ internal class MemberSearchOptions : ReflectionSearchOptions
     public bool Declared { get; set; }
 
     public bool IncludeObject { get; set; }
+
+    public bool RecurseNestedType { get; set; }
 }

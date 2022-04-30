@@ -173,6 +173,14 @@ namespace ClassExplorer.Commands
             set => _options.IncludeObject = value;
         }
 
+        [Parameter]
+        [Alias("r")]
+        public SwitchParameter RecurseNestedType
+        {
+            get => _options.RecurseNestedType;
+            set => _options.RecurseNestedType = value;
+        }
+
         private MemberSearch<PipelineEmitter<MemberInfo>> _search = null!;
 
         private protected override void OnNoInput()

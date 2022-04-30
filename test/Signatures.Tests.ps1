@@ -278,15 +278,15 @@ Describe 'Type signatures' {
             }'
 
         $type.GetNestedTypes() |
-            Find-Member -ParameterType { [T] } |
+            Find-Member -RecurseNestedType -ParameterType { [T] } |
             Should -BeTheseMembers First, Second
 
         $type.GetNestedTypes() |
-            Find-Member -ParameterType { [TT] } |
+            Find-Member -RecurseNestedType -ParameterType { [TT] } |
             Should -BeTheseMembers First
 
         $type.GetNestedTypes() |
-            Find-Member -ParameterType { [TM] } |
+            Find-Member -RecurseNestedType -ParameterType { [TM] } |
             Should -BeTheseMembers Second
     }
 
