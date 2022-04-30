@@ -709,6 +709,12 @@ internal class SignatureWriter
     public SignatureWriter TypeInfo(ParameterInfo parameter)
     {
         RefModifier(parameter);
+
+        if (parameter.IsDefined(typeof(ParamArrayAttribute), inherit: false))
+        {
+            Keyword("params").Space();
+        }
+
         Type parameterType = parameter.ParameterType;
         if (parameterType.IsByRef)
         {
@@ -1644,6 +1650,11 @@ internal class SignatureWriter
                 }
 
                 if (attribute.AttributeType == typeof(InAttribute) && hasReadOnlyDecoration)
+                {
+                    continue;
+                }
+
+                if (attribute.AttributeType == typeof(ParamArrayAttribute))
                 {
                     continue;
                 }
