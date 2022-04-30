@@ -46,7 +46,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
 
     public override void SearchSingleObject(PSObject pso)
     {
-        if (pso.BaseObject is Type type)
+        if (pso.BaseObject is Type type && (_options.RecurseNestedType || !type.IsNested))
         {
             SearchSingleType(type);
             return;
