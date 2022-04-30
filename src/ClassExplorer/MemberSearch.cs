@@ -95,7 +95,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
                 }
             }
 
-            AggregateFilter(member, this);
+            AggregateFilter(member, this, isPipeFilter: true);
             return;
         }
 
@@ -190,7 +190,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
         {
             filters.AddFilter(
                 static (member, _) => member is not MethodInfo method || !method.IsSpecialName,
-                FilterOptions.ExcludeNot);
+                FilterOptions.DoNotInverseNot | FilterOptions.ExcludePipeFilter);
         }
 
         if (_options.Abstract && _options.Virtual)
@@ -235,7 +235,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
                         && declaringType != typeof(ValueType)
                         && declaringType != typeof(Enum);
                 },
-                FilterOptions.ExcludeNot);
+                FilterOptions.DoNotInverseNot | FilterOptions.ExcludePipeFilter);
         }
     }
 

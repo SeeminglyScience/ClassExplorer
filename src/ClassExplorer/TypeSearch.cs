@@ -57,7 +57,7 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
 
         if (pso.BaseObject is Type type)
         {
-            AggregateFilter(type, this);
+            AggregateFilter(type, this, isPipeFilter: true);
             return;
         }
 
