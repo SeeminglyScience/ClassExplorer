@@ -649,6 +649,11 @@ internal class SignatureWriter
 
         if ((method.Attributes & MethodAttributes.NewSlot) is not 0)
         {
+            if (method.IsFinal)
+            {
+                return this;
+            }
+
             return Keyword("virtual").Space();
         }
 
