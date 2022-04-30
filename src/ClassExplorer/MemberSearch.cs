@@ -214,7 +214,27 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
         if (!_options.IncludeObject)
         {
             filters.AddFilter(
-                static (member, _) => member.DeclaringType != typeof(object),
+                static (member, _) =>
+                {
+                    // Show members by default if the caller is querying the
+                    // class directly.
+                    Type? reflectedType = member.ReflectedType;
+                    if (reflectedType == typeof(object)
+                        || reflectedType == typeof(ValueType)
+                        || reflectedType == typeof(Enum))
+                    {
+                        return true;
+                    }
+
+                    // Otherwise check the declaring type. This tells us if the
+                    // method is overridden. Also check for ValueType and Enum
+                    // as we typically don't want to see their implementations
+                    // either.
+                    Type? declaringType = member.DeclaringType;
+                    return declaringType != typeof(object)
+                        && declaringType != typeof(ValueType)
+                        && declaringType != typeof(Enum);
+                },
                 FilterOptions.ExcludeNot);
         }
     }
