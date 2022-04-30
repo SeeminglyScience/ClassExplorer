@@ -27,6 +27,8 @@ namespace ClassExplorer.Signatures
         public const string @enum = "enum";
         public const string referencetype = "referencetype";
         public const string @interface = "interface";
+        public const string @abstract = "abstract";
+        public const string concrete = "concrete";
         public const string primitive = "primitive";
         public const string pointer = "pointer";
         public const string any = "any";

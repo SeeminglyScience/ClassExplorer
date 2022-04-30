@@ -26,6 +26,8 @@ Type signatures are a custom query language built into PowerShell type expressio
 * [Generic Parameters (`T`, `TT`, and `TM`)](#generic-parameters-t-tt-and-tm)
 * [`primitive`](#primitive)
 * [`interface`](#interface)
+* [`abstract`](#abstract)
+* [`concrete`](#concrete)
 * [`number`](#number)
 * [`decoration`, `hasattr`](#decoration-hasattr)
 * [`generic`](#generic)
@@ -2502,6 +2504,230 @@ void Example(object obj);
 
 ```csharp
 void Example(int value);
+```
+
+</td>
+</tr>
+</table>
+
+## `abstract`
+
+<sup>([Back to Top](#keywords))</sup>
+
+Matches only abstract types.
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ParameterType { [abstract] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(IDisposable disposable);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(object obj);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(int value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(T value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(FileSystemInfo value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(FileInfo value);
+```
+
+</td>
+</tr>
+</table>
+
+## `concrete`
+
+<sup>([Back to Top](#keywords))</sup>
+
+Matches only concrete types. No abstract classes, interfaces, or generic parameters.
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ParameterType { [abstract] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(IDisposable disposable);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(object obj);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(int value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(T value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(FileSystemInfo value);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(FileInfo value);
 ```
 
 </td>

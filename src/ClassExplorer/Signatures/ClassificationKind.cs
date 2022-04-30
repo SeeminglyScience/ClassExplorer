@@ -25,6 +25,8 @@ namespace ClassExplorer.Signatures
 
         Primitive = 1 << 8,
 
-        Pointer = 1 << 9,
+        Abstract = 1 << 9,
+
+        Concrete = 1 << 10,
     }
 }
