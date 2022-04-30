@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1'
+ModuleVersion = '2.1.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -78,6 +78,19 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.1.0
+
+- Add signature keywords `abstract` and `concrete`
+- Find-Type no longer includes non-public classes when `-Not` is specified
+- Members from `System.Object` are now properly excluded from structs and enums when `-IncludeObject` is not specified
+- `params` now shows in member format
+- Member formatting is now grouped by full type name of reflected type.
+- New slot virtual members now display properly when they are also sealed
+
+## 2.0.1
+- Fix error messages and help
+
+## 2.0.0
 - Added type signatures, a custom query language built into type expressions. See https://seemingly.dev/about-type-signatures
 - A lot of fixes and tweaks
 - Removed Find-Namespace command
