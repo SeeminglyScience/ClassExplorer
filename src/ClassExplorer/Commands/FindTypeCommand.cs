@@ -62,7 +62,7 @@ namespace ClassExplorer.Commands
         /// </summary>
         [Parameter]
         [ValidateNotNull]
-        [Alias("Base")]
+        [Alias("Base", "it")]
         [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
         public ScriptBlockStringOrType InheritsType { get; set; } = null!;
 
@@ -72,7 +72,7 @@ namespace ClassExplorer.Commands
         [Parameter]
         [ValidateNotNull]
         [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
-        [Alias("int")]
+        [Alias("int", "ii")]
         public ScriptBlockStringOrType ImplementsInterface { get; set; } = null!;
 
         [Parameter]

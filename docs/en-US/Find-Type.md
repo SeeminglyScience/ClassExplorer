@@ -158,7 +158,7 @@ Specifies a interface that the type must implement to match. This can also be a 
 ```yaml
 Type: ClassExplorer.ScriptBlockStringOrType
 Parameter Sets: (All)
-Aliases: int
+Aliases: ii, int
 
 Required: False
 Position: Named
@@ -174,7 +174,7 @@ Specifies a type that the type must inherit to match. This can also be a type si
 ```yaml
 Type: ClassExplorer.ScriptBlockStringOrType
 Parameter Sets: (All)
-Aliases: Base
+Aliases: Base, it
 
 Required: False
 Position: Named
@@ -364,7 +364,7 @@ If specified all parameters that accept wildcards will match regular expressions
 ```yaml
 Type: System.Management.Automation.SwitchParameter
 Parameter Sets: (All)
-Aliases: Regex
+Aliases: Regex, re
 
 Required: False
 Position: Named

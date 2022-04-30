@@ -475,7 +475,7 @@ If specified any parameter that accepts wildcards will switch to matching regula
 ```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
-Aliases: Regex
+Aliases: Regex, re
 
 Required: False
 Position: Named
