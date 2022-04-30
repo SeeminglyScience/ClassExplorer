@@ -18,6 +18,8 @@ namespace ClassExplorer;
 
 internal class SignatureWriter
 {
+    private record struct TypeNameSettings(bool IsForAttribute, bool IsForDefinition, bool FullName);
+
     private const string RefStructObsoleteMessage = "Types with embedded references are not supported in this version of your compiler.";
 
     private const string IsReadOnlyAttribute = "System.Runtime.CompilerServices.IsReadOnlyAttribute";
@@ -728,70 +730,12 @@ internal class SignatureWriter
 
     public SignatureWriter TypeInfo(Type type, bool isForAttribute, bool isForDefinition)
     {
-        if (isForDefinition && type.IsGenericParameter && !Simple)
-        {
-            foreach (CustomAttributeData attribute in type.CustomAttributes)
-            {
-                Attribute(attribute).Space();
-            }
-        }
+        return TypeInfo(type, isForAttribute, isForDefinition, fullName: false);
+    }
 
-        if (type.UnwrapConstruction() == typeof(Nullable<>))
-        {
-            TypeInfo(type.GetGenericArguments()[0]);
-            return Question();
-        }
-
-        if (type.IsArray)
-        {
-            TypeInfo(type.GetElementType()!);
-            int rank = type.GetArrayRank();
-            if (rank is 1)
-            {
-                return OpenSquare().CloseSquare();
-            }
-
-            OpenSquare().Append(',', rank - 1).CloseSquare();
-            return this;
-        }
-
-        if (type.IsPointer)
-        {
-            TypeInfo(type.GetElementType()!);
-            Append("*");
-            return this;
-        }
-
-        string? wellKnownType = GetWellKnownTypeName(type);
-        if (wellKnownType is not null)
-        {
-            return Keyword(wellKnownType);
-        }
-
-        if (type.IsNested && !type.IsGenericParameter)
-        {
-            Poly.Assert(type.ReflectedType is not null);
-            TypeInfo(type.ReflectedType).Dot();
-        }
-
-        if (!TypeHelpers.TryGetNonHereditaryGenericParameters(type, out ReadOnlySpan<Type> genericArgs))
-        {
-            if (isForAttribute)
-            {
-                return TypeInfo(Regex.Replace(type.Name, "Attribute$", string.Empty, RegexOptions.IgnoreCase));
-            }
-
-            return TypeInfo(type.Name);
-        }
-
-        TypeInfo(RemoveArity(type.Name)).OpenGeneric();
-        TypeInfo(genericArgs[0], false, isForDefinition);
-        for (int i = 1; i < genericArgs.Length; i++)
-        {
-            Comma().Space().TypeInfo(genericArgs[i], isForAttribute: false, isForDefinition);
-        }
-
-        return CloseGeneric();
+    public SignatureWriter TypeInfo(Type type, bool isForAttribute, bool isForDefinition, bool fullName)
+    {
+        return TypeInfoImpl(type, new TypeNameSettings(isForAttribute, isForDefinition, fullName));
     }
 
     public static string? GetWellKnownTypeName(Type type)
@@ -1935,6 +1879,109 @@ internal class SignatureWriter
         }
 
         return name.Substring(0, index);
+    }
+
+    public SignatureWriter Namespace(string name)
+    {
+        string[] parts = name.Split('.');
+        Escape(_colors.Type).Append(parts[0]);
+        for (int i = 1; i < parts.Length; i++)
+        {
+            Escape(_colors.Reset)
+                .Dot()
+                .Escape(_colors.Type)
+                .Append(parts[i]);
+        }
+
+        return Escape(_colors.Reset);
+    }
+
+    private SignatureWriter TypeInfoImpl(Type type, TypeNameSettings settings)
+    {
+        if (settings.IsForDefinition && type.IsGenericParameter && !Simple)
+        {
+            foreach (CustomAttributeData attribute in type.CustomAttributes)
+            {
+                Attribute(attribute).Space();
+            }
+        }
+
+        if (type.UnwrapConstruction() == typeof(Nullable<>))
+        {
+            TypeInfoImpl(type.GetGenericArguments()[0], settings);
+            return Question();
+        }
+
+        if (type.IsArray)
+        {
+            TypeInfoImpl(type.GetElementType()!, settings);
+            int rank = type.GetArrayRank();
+            if (rank is 1)
+            {
+                return OpenSquare().CloseSquare();
+            }
+
+            OpenSquare().Append(',', rank - 1).CloseSquare();
+            return this;
+        }
+
+        if (type.IsPointer)
+        {
+            TypeInfoImpl(type.GetElementType()!, settings);
+            Append("*");
+            return this;
+        }
+
+        string? wellKnownType = GetWellKnownTypeName(type);
+        if (wellKnownType is not null)
+        {
+            return Keyword(wellKnownType);
+        }
+
+        if (type.IsNested && !type.IsGenericParameter)
+        {
+            Poly.Assert(type.ReflectedType is not null);
+            TypeInfoImpl(type.ReflectedType, settings).Dot();
+            settings = settings with { FullName = false };
+        }
+
+        if (!TypeHelpers.TryGetNonHereditaryGenericParameters(type, out ReadOnlySpan<Type> genericArgs))
+        {
+            return AppendTypeName(type, settings);
+        }
+
+        AppendTypeName(type, settings).OpenGeneric();
+        settings = settings with { FullName = false, IsForAttribute = false };
+        TypeInfoImpl(genericArgs[0], settings);
+        for (int i = 1; i < genericArgs.Length; i++)
+        {
+            Comma().Space().TypeInfoImpl(genericArgs[i], settings);
+        }
+
+        return CloseGeneric();
+    }
+
+    private SignatureWriter AppendTypeName(Type type, TypeNameSettings settings)
+    {
+        if (settings.FullName && type.Namespace is { Length: > 0 } && !type.IsGenericParameter)
+        {
+            Namespace(type.Namespace).Dot();
+        }
+
+        Escape(_colors.Type);
+
+        string name = type.Name;
+        if (type.IsGenericType)
+        {
+            name = RemoveArity(type.Name);
+        }
+
+        if (settings.IsForAttribute)
+        {
+            name = Regex.Replace(name, "Attribute$", string.Empty);
+        }
+
+        return Append(name).Escape(_colors.Reset);
     }
 
     private bool CanWrite(int length, out int remaining)

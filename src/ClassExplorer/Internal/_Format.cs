@@ -54,6 +54,20 @@ public static class _Format
     }
 
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
+    public static string FullType(Type value, int maxLength = -1)
+    {
+        return GetWriter(maxLength)
+            .TypeInfo(value, isForAttribute: false, isForDefinition: false, fullName: true)
+            .ToString();
+    }
+
+    [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
+    public static string Namespace(string value, int maxLength = -1)
+    {
+        return GetWriter(maxLength).Namespace(value).ToString();
+    }
+
+    [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
     public static string TypeAndParent(Type value, int maxLength = -1)
     {
         SignatureWriter writer = GetWriter(maxLength);

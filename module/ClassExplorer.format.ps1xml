@@ -91,7 +91,7 @@
                 <SelectionSetName>MemberInfo</SelectionSetName>
             </ViewSelectedBy>
             <GroupBy>
-                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.ReflectedType)</ScriptBlock>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::FullType($PSItem.ReflectedType)</ScriptBlock>
                 <Label>ReflectedType</Label>
             </GroupBy>
             <TableControl>
@@ -132,7 +132,7 @@
                 <TypeName>System.RuntimeType</TypeName>
             </ViewSelectedBy>
             <GroupBy>
-                <ScriptBlock>[ClassExplorer.Internal._Format]::Type($PSItem.Namespace)</ScriptBlock>
+                <ScriptBlock>[ClassExplorer.Internal._Format]::Namespace($PSItem.Namespace)</ScriptBlock>
                 <Label>Namespace</Label>
             </GroupBy>
             <TableControl>
