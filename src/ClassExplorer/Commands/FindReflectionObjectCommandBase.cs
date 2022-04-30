@@ -44,7 +44,7 @@ namespace ClassExplorer.Commands
         /// that support wildcards.
         /// </summary>
         [Parameter]
-        [Alias("Regex")]
+        [Alias("Regex", "re")]
         public virtual SwitchParameter RegularExpression { get; set; }
 
         /// <summary>
