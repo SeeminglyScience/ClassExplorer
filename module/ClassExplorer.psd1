@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.1.0'
+ModuleVersion = '2.2.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -78,6 +78,27 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.2.0
+
+### Add `-RecurseNestedType` parameter
+
+A lot of queries were a little harder with automatically recursing nested types.
+So you could do something like:
+
+```powershell
+Find-Type -Not -Base delegate | Find-Member -Not -Virtual | Find-Member Invoke
+```
+
+And end up with a bunch of members from nested delegates. This also lets you
+filter nested types easier. Basically we are just actually treating nested types
+like other members unless you specifically request otherwise.
+
+### Other
+
+* Filter sealed and abstract methods from virtual
+* Fix filters applying incorrectly with `-Not` or when piped
+* Add some extra parameter aliases
+
 ## 2.1.0
 
 - Add signature keywords `abstract` and `concrete`
