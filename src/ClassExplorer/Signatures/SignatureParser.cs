@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
@@ -193,6 +192,12 @@ namespace ClassExplorer.Signatures
             {
                 argsConsumed = true;
                 return CreateGenericSignature(kind, position, args);
+            }
+
+            if (IsIndex(nameAsLower.AsSpan(), out RangeExpression? indexRange))
+            {
+                argsConsumed = false;
+                return new ParameterIndexSignature(indexRange);
             }
 
             argsConsumed = false;
@@ -636,6 +641,22 @@ namespace ClassExplorer.Signatures
         private static ITypeSignature ThrowSignatureParseException(IScriptExtent extent, string message)
         {
             throw new SignatureParseException(message, extent);
+        }
+
+        private static bool IsIndex(ReadOnlySpan<char> typeName, [NotNullWhen(true)] out RangeExpression? range)
+        {
+            if (typeName is ['i', ..ReadOnlySpan<char> rest])
+            {
+                if (rest is ['n', 'd', 'e', 'x', ..ReadOnlySpan<char> afterIndex])
+                {
+                    rest = afterIndex;
+                }
+
+                return RangeExpression.TryParse(rest, out range);
+            }
+
+            range = null;
+            return false;
         }
 
         private static bool IsGenericParameter(TypeName typeName, out GenericParameterKind kind, out int position)

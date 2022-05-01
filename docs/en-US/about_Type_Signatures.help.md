@@ -28,6 +28,7 @@ Type signatures are a custom query language built into PowerShell type expressio
 * [`interface`](#interface)
 * [`abstract`](#abstract)
 * [`concrete`](#concrete)
+* [`index`](#index)
 * [`number`](#number)
 * [`decoration`, `hasattr`](#decoration-hasattr)
 * [`generic`](#generic)
@@ -2728,6 +2729,261 @@ void Example(FileSystemInfo value);
 
 ```csharp
 void Example(FileInfo value);
+```
+
+</td>
+</tr>
+</table>
+
+## `index`
+
+<sup>([Back to Top](#keywords))</sup>
+
+Matches only parameters in at a specific index in the method.
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ParameterType { [allof[index0, string]] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(IDisposable disposable);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(int value, string str);
+```
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ParameterType { [allof[index1.., string]] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(IDisposable disposable);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(int value, string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(int value, object obj, string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(string value, object obj, string str);
+```
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+# You can also use `i`
+Find-Member -ParameterType { [allof[i0..1, string]] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(IDisposable disposable);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(int value, string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(int value, object obj, string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(string value, object obj, string str);
 ```
 
 </td>

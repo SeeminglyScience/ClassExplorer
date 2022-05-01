@@ -470,6 +470,43 @@ keywords:
           - match: true
             sig: void Example(FileInfo value);
 
+  - header: "`index`"
+    description: Matches only parameters in at a specific index in the method.
+    examples:
+      - syntax: Find-Member -ParameterType { [allof[index0, string]] }
+        signatures:
+          - match: false
+            sig: void Example(IDisposable disposable);
+          - match: true
+            sig: void Example(string str);
+          - match: false
+            sig: void Example(int value, string str);
+      - syntax: Find-Member -ParameterType { [allof[index1.., string]] }
+        signatures:
+          - match: false
+            sig: void Example(IDisposable disposable);
+          - match: false
+            sig: void Example(string str);
+          - match: true
+            sig: void Example(int value, string str);
+          - match: true
+            sig: void Example(int value, object obj, string str);
+          - match: true
+            sig: void Example(string value, object obj, string str);
+      - syntax: "# You can also use `i`\n
+        Find-Member -ParameterType { [allof[i0..1, string]] }"
+        signatures:
+          - match: false
+            sig: void Example(IDisposable disposable);
+          - match: true
+            sig: void Example(string str);
+          - match: true
+            sig: void Example(int value, string str);
+          - match: false
+            sig: void Example(int value, object obj, string str);
+          - match: true
+            sig: void Example(string value, object obj, string str);
+
   - header: "`number`"
     description: Matches a hard coded list of types representing numbers.
     examples:
