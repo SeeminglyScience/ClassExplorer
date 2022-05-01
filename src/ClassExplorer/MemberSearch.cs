@@ -138,6 +138,11 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
 
     private void SearchSingleType(Type type)
     {
+        if (_options.Extension && !_options.Not && !type.IsDefined(typeof(ExtensionAttribute)))
+        {
+            return;
+        }
+
         type.FindMembers(
             _options.MemberType,
             _flags,
@@ -209,6 +214,11 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
         if (_options.Declared)
         {
             filters.AddFilter(static (member, _) => member.DeclaringType == member.ReflectedType);
+        }
+
+        if (_options.Extension)
+        {
+            filters.AddFilter(static (member, _) => member.IsDefined(typeof(ExtensionAttribute)));
         }
 
         if (!_options.IncludeObject)

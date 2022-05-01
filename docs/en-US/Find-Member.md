@@ -16,13 +16,13 @@ Find properties, methods, fields, etc that fit specific criteria.
 
 ```powershell
 
-Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -596,6 +596,23 @@ can specify this parameter.
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases: r
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Extension
+
+When specified, members must be decorated with `ExtensionAttribute` to match. This
+is how the C# compiler marks extension methods like those found in `System.Linq.Enumerable`.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: ext
 
 Required: False
 Position: Named

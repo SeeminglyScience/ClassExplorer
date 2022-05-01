@@ -181,6 +181,14 @@ namespace ClassExplorer.Commands
             set => _options.RecurseNestedType = value;
         }
 
+        [Parameter]
+        [Alias("ext")]
+        public SwitchParameter Extension
+        {
+            get => _options.Extension;
+            set => _options.Extension = value;
+        }
+
         private MemberSearch<PipelineEmitter<MemberInfo>> _search = null!;
 
         private protected override void OnNoInput()

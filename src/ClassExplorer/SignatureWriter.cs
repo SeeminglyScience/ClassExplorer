@@ -710,6 +710,14 @@ internal class SignatureWriter
     {
         RefModifier(parameter);
 
+        if (parameter.Position is 0
+            && parameter.Member is MethodInfo method
+            && method.IsStatic
+            && method.IsDefined(typeof(ExtensionAttribute)))
+        {
+            Keyword("this").Space();
+        }
+
         if (parameter.IsDefined(typeof(ParamArrayAttribute), inherit: false))
         {
             Keyword("params").Space();
