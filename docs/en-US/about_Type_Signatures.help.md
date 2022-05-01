@@ -30,6 +30,7 @@ Type signatures are a custom query language built into PowerShell type expressio
 * [`concrete`](#concrete)
 * [`index`](#index)
 * [`number`](#number)
+* [`hasdefault`](#hasdefault)
 * [`decoration`, `hasattr`](#decoration-hasattr)
 * [`generic`](#generic)
 * [Resolution Maps](#resolution-maps)
@@ -3236,6 +3237,76 @@ public class Object
 
 ```csharp
 public readonly struct DateTime
+```
+
+</td>
+</tr>
+</table>
+
+## `hasdefault`
+
+<sup>([Back to Top](#keywords))</sup>
+
+Matches only parameters with a default value.
+
+<table>
+<tr>
+<td colspan="2" width="1000">
+
+```powershell
+Find-Member -ParameterType { [hasdefault] }
+```
+
+</td>
+</tr>
+<tr>
+<th width="1">
+
+</th>
+<th>
+
+Signature
+
+</th>
+</tr>
+<tr>
+<td width="1">
+
+:x:
+
+</td>
+<td>
+
+```csharp
+void Example(string str);
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(string str = "something");
+```
+
+</td>
+</tr>
+<tr>
+<td width="1">
+
+:heavy_check_mark:
+
+</td>
+<td>
+
+```csharp
+void Example(CancellationToken token = default);
 ```
 
 </td>
