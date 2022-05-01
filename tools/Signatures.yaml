@@ -545,6 +545,18 @@ keywords:
           - match: false
             sig: public readonly struct DateTime
 
+  - header: "`hasdefault`"
+    description: Matches only parameters with a default value.
+    examples:
+      - syntax: Find-Member -ParameterType { [hasdefault] }
+        signatures:
+          - match: false
+            sig: void Example(string str);
+          - match: true
+            sig: void Example(string str = "something");
+          - match: true
+            sig: void Example(CancellationToken token = default);
+
   - header: "`decoration`, `hasattr`"
     description: Matches parameters or types decorated with this attribute.
     examples:

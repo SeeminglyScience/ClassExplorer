@@ -231,6 +231,7 @@ namespace ClassExplorer.Signatures
                 Keywords.any => new AnySignature(),
                 Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),
                 Keywords.hasdefault => new HasDefaultSignature(),
+                Keywords.number => new NumberTypeSignature(),
                 Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
                 Keywords.pointer => Consume(ParsePointer(args, typeName), out argsConsumed),
                 _ => Default(typeName, args),

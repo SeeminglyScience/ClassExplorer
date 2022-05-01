@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.3.0'
+ModuleVersion = '2.3.1'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -78,6 +78,11 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.3.1
+
+* Fix `number` signature keyword not resolving
+* Add help for `hasdefault` keyword
+
 ## 2.3.0
 
 * Add `-Extension` parameter to `Find-Member`. This will find only extension methods
