@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.2.0'
+ModuleVersion = '2.3.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -78,6 +78,12 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.3.0
+
+* Add `-Extension` parameter to `Find-Member`. This will find only extension methods
+* Add `index` signature keyword for restricting matches to a specific method parameter
+  index. (e.g. `[allof[index0, string]]` will match if the first parameter is a `string`.
+
 ## 2.2.0
 
 ### Add `-RecurseNestedType` parameter
