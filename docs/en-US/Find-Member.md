@@ -626,7 +626,7 @@ Accept wildcard characters: False
 Specifies a hashtable of `name` to `ScriptBlockStringOrType` to create your own keywords and/or override type resolution for any signature in this command.
 
 ```yaml
-Type:
+Type: hashtable
 Parameter Sets: (All)
 Aliases: map
 
