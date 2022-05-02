@@ -1762,6 +1762,14 @@ internal class SignatureWriter
 
     public SignatureWriter Member(PropertyInfo property)
     {
+        if (!Simple)
+        {
+            foreach (CustomAttributeData? attribute in property.CustomAttributes)
+            {
+                Attribute(attribute).NewLine();
+            }
+        }
+
         MethodInfo? getMethod = property.GetGetMethod(nonPublic: true);
         MethodInfo? setMethod = property.GetSetMethod(nonPublic: true);
         MethodInfo? modifiersMethod = null;
