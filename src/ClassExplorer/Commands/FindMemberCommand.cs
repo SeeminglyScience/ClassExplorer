@@ -95,6 +95,7 @@ namespace ClassExplorer.Commands
 
         [Parameter]
         [Alias("HasAttr", "attr")]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
         public ScriptBlockStringOrType? Decoration
         {
             get => _options.Decoration;
