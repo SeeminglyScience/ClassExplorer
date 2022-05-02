@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.3.1'
+ModuleVersion = '2.3.2'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -78,6 +78,12 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.3.2
+
+* Add property attributes in `Format-MemberSignature`
+* Add argument completion for `-Decoration`
+* Fix type for `ResolutionMap` in help
+
 ## 2.3.1
 
 * Fix `number` signature keyword not resolving
