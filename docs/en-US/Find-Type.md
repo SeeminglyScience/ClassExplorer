@@ -15,13 +15,13 @@ Find .NET classes in the AppDomain.
 ### ByFilter (Default)
 
 ```powershell
-Find-Type [[-FilterScript] <scriptblock>] [[-Namespace] <string>] [-Name <string>] [-FullName <string>] [-InheritsType <ScriptBlockStringOrType>] [-ImplementsInterface <ScriptBlockStringOrType>] [-Signature <ScriptBlockStringOrType>] [-Abstract] [-Static] [-Sealed] [-Interface] [-ValueType] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Type [[-FilterScript] <scriptblock>] [[-Namespace] <string>] [-Name <string>] [-FullName <string>] [-InheritsType <ScriptBlockStringOrType>] [-ImplementsInterface <ScriptBlockStringOrType>] [-Signature <ScriptBlockStringOrType>] [-Abstract] [-Static] [-Sealed] [-Interface] [-ValueType] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [-Decoration <ScriptBlockStringOrType>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Type [[-Name] <string>] [[-Namespace] <string>] [-FullName <string>] [-InheritsType <ScriptBlockStringOrType>] [-ImplementsInterface <ScriptBlockStringOrType>] [-Signature <ScriptBlockStringOrType>] [-Abstract] [-Static] [-Sealed] [-Interface] [-ValueType] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Type [[-Name] <string>] [[-Namespace] <string>] [-FullName <string>] [-InheritsType <ScriptBlockStringOrType>] [-ImplementsInterface <ScriptBlockStringOrType>] [-Signature <ScriptBlockStringOrType>] [-Abstract] [-Static] [-Sealed] [-Interface] [-ValueType] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [-Decoration <ScriptBlockStringOrType>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -381,6 +381,24 @@ Specifies the access perspective (`External`, `SameAssembly`, `Child` and/or `Th
 Type: ClassExplorer.AccessView
 Parameter Sets: (All)
 Aliases: as
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Decoration
+
+Specifies that a type must be decorated with this attribute for it to be included in results. This search will be done based on type name rather than strict type identity so it is safe to use for embedded attributes.
+
+This can also be a type signature (see [about_Type_Signatures](https://seemingly.dev/about-type-signatures)).
+
+```yaml
+Type: Type
+Parameter Sets: (All)
+Aliases: HasAttr, attr
 
 Required: False
 Position: Named

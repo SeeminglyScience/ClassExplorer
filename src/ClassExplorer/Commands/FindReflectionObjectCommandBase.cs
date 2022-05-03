@@ -67,6 +67,11 @@ namespace ClassExplorer.Commands
         [Alias("as")]
         public virtual AccessView AccessView { get; set; }
 
+        [Parameter]
+        [Alias("HasAttr", "attr")]
+        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
+        public ScriptBlockStringOrType? Decoration { get; set; }
+
         private bool _hadError;
 
         /// <summary>
@@ -120,7 +125,7 @@ namespace ClassExplorer.Commands
             // you probably aren't passing the entire AppDomain like this.
             if (InputObject.BaseObject is IList list)
             {
-                foreach (var item in list)
+                foreach (object? item in list)
                 {
                     ProcessSingleObject(PSObject.AsPSObject(item));
                 }
@@ -169,20 +174,6 @@ namespace ClassExplorer.Commands
                             entry));
                     continue;
                 }
-
-                // if (!LanguagePrimitives.TryConvertTo(entry.Value, out Type value))
-                // {
-                //     WriteError(
-                //         new ErrorRecord(
-                //             new PSInvalidCastException(
-                //                 SR.Format(
-                //                     "Cannot convert the \"{0}\" value of type \"{1}\" to type \"{1}\".",
-                //                     entry.Value,
-                //                     entry.Value.GetType().FullName)),
-                //             "InvalidTypeResolutionMap",
-                //             ErrorCategory.InvalidArgument,
-                //             entry));
-                // }
 
                 resolutionMap[key] = LanguagePrimitives.ConvertTo<ScriptBlockStringOrType>(entry.Value);
             }

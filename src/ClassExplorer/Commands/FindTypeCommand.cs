@@ -187,6 +187,7 @@ namespace ClassExplorer.Commands
             _options.ResolutionMap = resolutionMap;
             _options.Signature = signature;
             _options.AccessView = AccessView;
+            _options.Decoration = Decoration;
             _search = Search.Types(_options, new PipelineEmitter<Type>(this));
         }
     }

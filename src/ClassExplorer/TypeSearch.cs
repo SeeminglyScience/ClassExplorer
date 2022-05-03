@@ -136,5 +136,15 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
                 _options.Signature,
                 static (type, signature) => signature.IsMatch(type));
         }
+
+        if (_options.Decoration is not null)
+        {
+            filters.AddFilter(
+                new DecorationSignature(
+                    SignatureParser.ResolveAttributeTypeName(
+                        _options.Decoration,
+                        _options.ResolutionMap)),
+                static (type, signature) => signature.IsMatch(type));
+        }
     }
 }

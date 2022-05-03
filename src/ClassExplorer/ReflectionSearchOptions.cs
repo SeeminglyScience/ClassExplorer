@@ -20,4 +20,6 @@ internal abstract class ReflectionSearchOptions
     public Dictionary<string, ScriptBlockStringOrType>? ResolutionMap { get; set; }
 
     public AccessView AccessView { get; set; }
+
+    public ScriptBlockStringOrType? Decoration { get; set; }
 }
