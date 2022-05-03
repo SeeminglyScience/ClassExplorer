@@ -93,15 +93,6 @@ namespace ClassExplorer.Commands
             set => _options.IncludeSpecialName = value;
         }
 
-        [Parameter]
-        [Alias("HasAttr", "attr")]
-        [ArgumentCompleter(typeof(TypeFullNameArgumentCompleter))]
-        public ScriptBlockStringOrType? Decoration
-        {
-            get => _options.Decoration;
-            set => _options.Decoration = value;
-        }
-
         /// <summary>
         /// Gets or sets the member type to match.
         /// </summary>
@@ -220,6 +211,7 @@ namespace ClassExplorer.Commands
             _options.RegularExpression = RegularExpression;
             _options.ResolutionMap = resolutionMap;
             _options.AccessView = AccessView;
+            _options.Decoration = Decoration;
             _search = Search.Members(_options, new PipelineEmitter<MemberInfo>(this));
         }
     }

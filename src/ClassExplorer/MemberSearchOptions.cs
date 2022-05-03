@@ -16,8 +16,6 @@ internal class MemberSearchOptions : ReflectionSearchOptions
 
     public bool IncludeSpecialName { get; set; }
 
-    public ScriptBlockStringOrType? Decoration { get; set; }
-
     public MemberTypes MemberType { get; set; }
 
     public bool Static { get; set; }

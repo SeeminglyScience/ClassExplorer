@@ -16,13 +16,13 @@ Find properties, methods, fields, etc that fit specific criteria.
 
 ```powershell
 
-Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Member [[-FilterScript] <scriptblock>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-Name <string>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [-Decoration <ScriptBlockStringOrType>] [<CommonParameters>]
 ```
 
 ### ByName
 
 ```powershell
-Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-Decoration <ScriptBlockStringOrType>] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [<CommonParameters>]
+Find-Member [[-Name] <string>] [-ParameterType <ScriptBlockStringOrType>] [-GenericParameter <ScriptBlockStringOrType>] [-ParameterCount <RangeExpression[]>] [-GenericParameterCount <RangeExpression[]>] [-ReturnType <ScriptBlockStringOrType>] [-IncludeSpecialName] [-MemberType <MemberTypes>] [-Static] [-Instance] [-Abstract] [-Virtual] [-Declared] [-IncludeObject] [-RecurseNestedType] [-Extension] [-FilterScript <scriptblock>] [-Force] [-RegularExpression] [-InputObject <psobject>] [-Not] [-ResolutionMap <hashtable>] [-AccessView <AccessView>] [-Decoration <ScriptBlockStringOrType>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -36,7 +36,7 @@ The Find-Member cmdlet searches the process for type members that fit specified 
 ```powershell
 Find-Member GetPowerShell
 
-#    ReflectedType: ScriptBlock
+#    ReflectedType: System.Management.Automation.ScriptBlock
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -54,7 +54,7 @@ Find all members in the AppDomain with the name "GetPowerShell"
 ```powershell
 [System.IO.Stream] | Find-Member -ParameterType { [anyof[Span[any], Memory[any]]] }
 
-#    ReflectedType: Stream
+#    ReflectedType: System.IO.Stream
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -69,19 +69,19 @@ Find all members that take a `Span<>` or a `Memory<>` as a parameter.
 ```powershell
 Find-Member -ParameterCount 0 -GenericParameter { [T[new]] }
 
-#    ReflectedType: InlineParserList
+#    ReflectedType: Markdig.Parsers.InlineParserList
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # AddIfNotAlready       Method       public void AddIfNotAlready<TItem>();
 #
-#    ReflectedType: ParserList<T, TState>
+#    ReflectedType: Markdig.Parsers.ParserList<T, TState>
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # AddIfNotAlready       Method       public void AddIfNotAlready<TItem>();
 #
-#    ReflectedType: OrderedList<T>
+#    ReflectedType: Markdig.Parsers.OrderedList<T>
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -95,13 +95,13 @@ Find all methods with no parameters and with a generic parameter with the `new` 
 ```powershell
 Find-Member Emit -ParameterCount ..1, 7..8, 10..
 
-#    ReflectedType: ILGenerator
+#    ReflectedType: System.Reflection.Emit.ILGenerator
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # Emit                  Method       public virtual void Emit(OpCode opcode);
 #
-#    ReflectedType: Compilation
+#    ReflectedType: Microsoft.CodeAnalysis.Compilation
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -110,11 +110,11 @@ Find-Member Emit -ParameterCount ..1, 7..8, 10..
 # Emit                  Method       public EmitResult Emit(Stream peStream, St…
 # Emit                  Method       public EmitResult Emit(Stream peStream, St…
 #
-#    ReflectedType: FileSystemExtensions
+#    ReflectedType: Microsoft.CodeAnalysis.FileSystemExtensions
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
-# Emit                  Method       public static EmitResult Emit(Compilation …
+# Emit                  Method       public static EmitResult Emit(this Compila…
 ```
 
 Find all methods named `Emit` whose parameter count is any of the following:
@@ -128,19 +128,19 @@ Find all methods named `Emit` whose parameter count is any of the following:
 ```powershell
 Find-Member -ReturnType System.Management.Automation.Language.Ast -Static
 
-#    ReflectedType: CommandCompletion
+#    ReflectedType: System.Management.Automation.CommandCompletion
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # MapStringInputToPars… Method       public static Tuple<Ast, Token[], IScriptPosition> MapStringI…
 #
-#    ReflectedType: UsingExpressionAst
+#    ReflectedType: System.Management.Automation.Language.UsingExpressionAst
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # ExtractUsingVariable  Method       public static VariableExpressionAst ExtractUsingVariable(Usin…
 #
-#    ReflectedType: Parser
+#    ReflectedType: System.Management.Automation.Language.Parser
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -156,13 +156,13 @@ Find all static members in the AppDomain that return any type of AST.
 ```powershell
 Find-Member -ParameterType runspace -Virtual
 
-#    ReflectedType: IHostSupportsInteractiveSession
+#    ReflectedType: System.Management.Automation.Host.IHostSupportsInteractiveSession
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
 # PushRunspace          Method       public abstract void PushRunspace(Runspace runspace);
 #
-#    ReflectedType: IPSConsoleReadLineMockableMethods
+#    ReflectedType: Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -176,7 +176,7 @@ Find all virtual members in the AppDomain that take any runspace type as a param
 ```powershell
 Find-Member Parse* -ParameterType System.Management.Automation.Language.Token
 
-#    ReflectedType: Parser
+#    ReflectedType: System.Management.Automation.Language.Parser
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
@@ -193,7 +193,7 @@ demonstrates how this will even match the element of a type that is both an arra
 ```powershell
 [runspace] | Find-Member -Force -Abstract | Find-Member -Not -AccessView Child
 
-#    ReflectedType: Runspace
+#    ReflectedType: System.Management.Automation.Runspaces.Runspace
 #
 # Name                  MemberType   Definition
 # ----                  ----------   ----------
