@@ -78,6 +78,12 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
+## 2.3.3
+
+* Add `-Decoration` to `Find-Type`
+* Fix `-Decoration` parameter and `hasattr` keyword being unreliable with non-BCL
+  attributes.
+
 ## 2.3.2
 
 * Add property attributes in `Format-MemberSignature`
