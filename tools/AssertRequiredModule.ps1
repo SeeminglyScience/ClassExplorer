@@ -29,7 +29,7 @@ end {
             return
         }
 
-        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force.IsPresent -Scope CurrentUser
+        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force -Scope CurrentUser
         return
     }
 
@@ -43,7 +43,7 @@ end {
     try {
         Import-Module @importModuleSplat -Force
     } catch [System.IO.FileNotFoundException] {
-        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force.IsPresent -Scope CurrentUser
+        Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force -Scope CurrentUser
         Import-Module @importModuleSplat -Force
     }
 }
