@@ -131,7 +131,7 @@ Find-Member -MemberType Method -Instance -ParameterType string -ReturnType bool 
     Find-Member -ParameterType { [anyref] [any] } |
     Find-Member -Not -RegularExpression 'Should(Continue|Process)'
 ```
-
+ 
 ![Example-4-Results](https://user-images.githubusercontent.com/24977523/164995061-21e0c627-fd05-43d4-b831-f901bfc31fd2.png)
 
 ## Contributions Welcome!
