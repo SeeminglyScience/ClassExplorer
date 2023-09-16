@@ -302,7 +302,7 @@ begin {
 }
 end {
     $yaml = Get-Content -Raw $PSScriptRoot/Signatures.yaml -ErrorAction Stop |
-        ConvertFrom-Yaml
+        Yayaml\ConvertFrom-Yaml
 
     if (-not $AboutHelp) {
         $w = [MdSigWriter]::new([StringBuilder]::new())
@@ -327,7 +327,7 @@ end {
 
     $null = $w.AppendLine()
 
-    $keywords = $yaml['keywords'].ToArray()
+    $keywords = $yaml['keywords']
 
     $null = $w.ToC([string[]]$keywords.ForEach{ $PSItem['header'] })
 
