@@ -373,42 +373,42 @@ keywords:
         signatures:
           - match: true
             sig: "
-            public class MyClass<T> where T : unmanaged\n
-            { }\n\n
+              public class MyClass<T> where T : unmanaged\n
+              { }\n\n
 
-            void Example(T value);"
+              void Example(T value);"
       - syntax: Find-Member -ParameterType { [T[new]] }
         signatures:
           - match: true
             sig: "
-            public class MyClass<T> where T : new()\n
-            { }\n\n
+              public class MyClass<T> where T : new()\n
+              { }\n\n
 
-            void Example(T value);"
+              void Example(T value);"
       - syntax: Find-Member -ParameterType { [T[Collections.IList]] }
         signatures:
           - match: true
             sig: "
-            public class MyClass<T> where T : IList\n
-            { }\n\n
+              public class MyClass<T> where T : IList\n
+              { }\n\n
 
-            void Example(T value);"
+              void Example(T value);"
       - syntax: Find-Member -ParameterType { [T[struct]] }
         signatures:
           - match: true
             sig: "
-            public class MyClass<T> where T : struct\n
-            { }\n\n
+              public class MyClass<T> where T : struct\n
+              { }\n\n
 
-            void Example(T value);"
+              void Example(T value);"
       - syntax: Find-Member -ParameterType { [T[class]] }
         signatures:
           - match: true
             sig: "
-            public class MyClass<T> where T : class\n
-            { }\n\n
+              public class MyClass<T> where T : class\n
+              { }\n\n
 
-            void Example(T value);"
+              void Example(T value);"
 
   - header: "`primitive`"
     description: Matches bool, byte, char, double, short, int, long, IntPtr, sbyte, float, ushort, uint, ulong, or UIntPtr.
@@ -494,7 +494,7 @@ keywords:
           - match: true
             sig: void Example(string value, object obj, string str);
       - syntax: "# You can also use `i`\n
-        Find-Member -ParameterType { [allof[i0..1, string]] }"
+          Find-Member -ParameterType { [allof[i0..1, string]] }"
         signatures:
           - match: false
             sig: void Example(IDisposable disposable);
@@ -567,8 +567,8 @@ keywords:
           - match: false
             sig: void Example(object[] args);
       - syntax: "Find-Member -ParameterType {\n
-          \t[hasattr[Management.Automation.CmdletAttribute]]\n
-        }"
+            \t[hasattr[Management.Automation.CmdletAttribute]]\n
+          }"
         signatures:
           - match: true
             sig: void Example(OutStringCommand command);
@@ -577,8 +577,8 @@ keywords:
     description: Provides a way to specify a signature that takes arguments for a generic type definition.
     examples:
       - syntax: "Find-Member -ParameterType {\n
-          \t[generic[exact[Collections.Generic.IList`1], args[struct]]]\n
-        }"
+            \t[generic[exact[Collections.Generic.IList`1], args[struct]]]\n
+          }"
         signatures:
           - match: true
             sig: void Example(IList<DateTime> values);
@@ -592,17 +592,17 @@ keywords:
     examples:
       - syntax:
         - "$map = @{\n
-          \tnumber = {\n
-            \t\t[anyof[bigint, [allof[primitive, [not[anyof[bool, char]]]]]]]\n
-          \t}\n\n
-          \tanymemory = {\n
-            \t\t[anyof[Span[any], ReadOnlySpan[any], Memory[any], ReadOnlyMemory[any]]]\n
-          \t}\n\n
-          \tLocalRunspace = (Find-Type LocalRunspace -Force)\n
-        }\n"
+            \tnumber = {\n
+              \t\t[anyof[bigint, [allof[primitive, [not[anyof[bool, char]]]]]]]\n
+            \t}\n\n
+            \tanymemory = {\n
+              \t\t[anyof[Span[any], ReadOnlySpan[any], Memory[any], ReadOnlyMemory[any]]]\n
+            \t}\n\n
+            \tLocalRunspace = (Find-Type LocalRunspace -Force)\n
+          }\n"
         - "Find-Type -Force -ResolutionMap $map -Signature {\n
-          \t[anyof[number, anymemory, LocalRunspace]]\n
-        }"
+            \t[anyof[number, anymemory, LocalRunspace]]\n
+          }"
         signatures:
           - match: true
             sig: public struct Byte { }
