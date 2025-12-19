@@ -1,7 +1,7 @@
 if (-not $PSVersionTable.PSEdition -or $PSVersionTable.PSEdition -eq 'Desktop') {
-    Import-Module "$PSScriptRoot/bin/Desktop/ClassExplorer.dll"
+    Import-Module "$PSScriptRoot/bin/Legacy/ClassExplorer.dll"
 } else {
-    Import-Module "$PSScriptRoot/bin/Core/ClassExplorer.dll"
+    Import-Module "$PSScriptRoot/bin/Modern/ClassExplorer.dll"
 }
 
 if (-not $env:CLASS_EXPLORER_TRUE_CHARACTER) {
