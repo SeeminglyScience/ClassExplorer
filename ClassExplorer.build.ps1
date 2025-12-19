@@ -20,28 +20,6 @@ $testModuleManifestSplat = @{
 $manifest = Test-ModuleManifest @testModuleManifestSplat
 $moduleVersion = $manifest.Version
 
-
-# $script:Settings = @{
-#     Name          = $moduleName
-#     Manifest      = $manifest
-#     Version       = $manifest.Version
-#     ShouldTest    = $true
-# }
-
-# $script:Folders  = @{
-#     PowerShell = "$PSScriptRoot\module"
-#     CSharp     = "$PSScriptRoot\src"
-#     Build      = '{0}\src\{1}\bin\{2}' -f $PSScriptRoot, $moduleName, $Configuration
-#     Release    = '{0}\Release\{1}\{2}' -f $PSScriptRoot, $moduleName, $manifest.Version
-#     Docs       = "$PSScriptRoot\docs"
-#     Test       = "$PSScriptRoot\test"
-#     Results    = "$PSScriptRoot\testresults"
-# }
-
-# HasDocs       = Test-Path ('{0}\{1}\*.md' -f $Folders.Docs, $PSCulture)
-# HasTests      = Test-Path ('{0}\*.Tests.ps1' -f $Folders.Test)
-# $_IsUnix        = $PSVersionTable.PSEdition -eq "Core" -and -not $IsWindows
-
 $tools = "$PSScriptRoot\tools"
 $script:GetDotNet = Get-Command $tools\GetDotNet.ps1
 $script:AssertModule = Get-Command $tools\AssertRequiredModule.ps1
