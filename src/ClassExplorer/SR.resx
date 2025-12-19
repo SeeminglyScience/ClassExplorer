@@ -129,6 +129,9 @@
   <data name="DecorationBadArgs" xml:space="preserve">
     <value>The keyword "decoration" requires exactly one generic argument (Example: [decoration[ParameterAttribute]]). See https://seemingly.dev/about-type-signatures or help about_Type_Signatures.</value>
   </data>
+  <data name="SigBadArgs" xml:space="preserve">
+    <value>The keyword "sig" requires at least one generic argument representing the return type (Example: [sig[Arg1, Arg2, void]]). See https://seemingly.dev/about-type-signatures or help about_Type_Signatures.</value>
+  </data>
   <data name="TypeNotFound" xml:space="preserve">
     <value>Unable to find type [{0}].</value>
   </data>

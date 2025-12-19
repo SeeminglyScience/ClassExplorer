@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace ClassExplorer
+namespace ClassExplorer;
+
+internal static class TypeExtensions
 {
-    internal static class TypeExtensions
+    extension(MemberInfo member)
     {
-        public static bool IsVirtualOrAbstract(this MemberInfo member)
+        public bool IsVirtualOrAbstract()
         {
             return member switch
             {
@@ -18,10 +20,7 @@ namespace ClassExplorer
             };
         }
 
-        public static bool IsVirtualOrAbstract(this MethodInfo? method)
-            => method is { IsFinal: false } and ({ IsVirtual: true } or { IsAbstract: true });
-
-        public static bool IsVirtual(this MemberInfo member)
+        public bool IsVirtual()
         {
             return member switch
             {
@@ -32,7 +31,7 @@ namespace ClassExplorer
             };
         }
 
-        public static bool IsAbstract(this MemberInfo member)
+        public bool IsAbstract()
         {
             return member switch
             {
@@ -43,7 +42,7 @@ namespace ClassExplorer
             };
         }
 
-        public static bool DoesMatchView(this MemberInfo member, AccessView view)
+        public bool DoesMatchView(AccessView view)
         {
             return member switch
             {
@@ -56,7 +55,103 @@ namespace ClassExplorer
             };
         }
 
-        public static bool DoesMatchView(this Type type, AccessView view)
+        public Type? GetReturnType() => member switch
+        {
+            MethodInfo m => m.ReturnType,
+            ConstructorInfo m => m.ReflectedType,
+            FieldInfo m => m.FieldType,
+            PropertyInfo m => m.GetGetMethod(true)?.ReturnType,
+            _ => null,
+        };
+    }
+
+    extension(MethodInfo? method)
+    {
+        public bool IsVirtualOrAbstract() => method is { IsFinal: false } and ({ IsVirtual: true } or { IsAbstract: true });
+
+        public T? CreateDelegatePoly<T>() where T : Delegate => (T?)method?.CreateDelegate(typeof(T));
+    }
+
+    extension(MethodInfo method)
+    {
+        public Type GetReturnType() => method.ReturnType;
+    }
+
+    extension(PropertyInfo property)
+    {
+        public bool DoesMatchView(AccessView view)
+        {
+            MethodInfo? method = property.GetFirstMethod();
+            return method is not null && DoesMatchView(method, view);
+        }
+
+        public MethodInfo? GetFirstMethod()
+        {
+            return property.GetGetMethod(nonPublic: true) ?? property.GetSetMethod(nonPublic: true);
+        }
+
+        public Type? GetReturnType() => property.GetGetMethod(true)?.ReturnType;
+    }
+
+    extension(EventInfo eventInfo)
+    {
+        public bool DoesMatchView(AccessView view)
+        {
+            MethodInfo? method = eventInfo.GetFirstMethod();
+            return method is not null && DoesMatchView(method, view);
+        }
+
+        public MethodInfo? GetFirstMethod()
+        {
+            return eventInfo.GetAddMethod(nonPublic: true) ?? eventInfo.GetRemoveMethod(nonPublic: true);
+        }
+    }
+
+    extension(MethodBase method)
+    {
+        public bool DoesMatchView(AccessView view)
+        {
+            return method switch
+            {
+                _ when method.IsPublic => (view & AccessView.Public) is not 0,
+                _ when view is AccessView.This => true,
+                _ when method.IsPrivate => (view & AccessView.Private) is not 0,
+                _ when method.IsAssembly => (view & AccessView.Internal) is not 0,
+                _ when method.IsFamily => (view & AccessView.Protected) is not 0,
+                _ when method.IsFamilyAndAssembly
+                    => (view & AccessView.Protected) is not 0 && (view & AccessView.Internal) is not 0,
+                _ when method.IsFamilyOrAssembly
+                    => (view & AccessView.Protected) is not 0 || (view & AccessView.Internal) is not 0,
+                _ => Unreachable.Code<bool>(),
+            };
+        }
+    }
+
+    extension(FieldInfo field)
+    {
+        public bool DoesMatchView(AccessView view)
+        {
+            return field switch
+            {
+                _ when field.IsPublic => (view & AccessView.Public) is not 0,
+                _ when view is AccessView.This => true,
+                _ when field.IsPrivate => (view & AccessView.Private) is not 0,
+                _ when field.IsAssembly => (view & AccessView.Internal) is not 0,
+                _ when field.IsFamily => (view & AccessView.Protected) is not 0,
+                _ when field.IsFamilyAndAssembly
+                    => (view & AccessView.Protected) is not 0 && (view & AccessView.Internal) is not 0,
+                _ when field.IsFamilyOrAssembly
+                    => (view & AccessView.Protected) is not 0 || (view & AccessView.Internal) is not 0,
+                _ => Unreachable.Code<bool>(),
+            };
+        }
+
+        public Type GetReturnType() => field.FieldType;
+    }
+
+    extension(Type type)
+    {
+        public bool DoesMatchView(AccessView view)
         {
             return type switch
             {
@@ -98,63 +193,7 @@ namespace ClassExplorer
             }
         }
 
-        public static bool DoesMatchView(this PropertyInfo property, AccessView view)
-        {
-            MethodInfo? method = property.GetFirstMethod();
-            return method is not null && DoesMatchView(method, view);
-        }
-
-        public static bool DoesMatchView(this EventInfo eventInfo, AccessView view)
-        {
-            MethodInfo? method = eventInfo.GetFirstMethod();
-            return method is not null && DoesMatchView(method, view);
-        }
-
-        public static bool DoesMatchView(this MethodBase method, AccessView view)
-        {
-            return method switch
-            {
-                _ when method.IsPublic => (view & AccessView.Public) is not 0,
-                _ when view is AccessView.This => true,
-                _ when method.IsPrivate => (view & AccessView.Private) is not 0,
-                _ when method.IsAssembly => (view & AccessView.Internal) is not 0,
-                _ when method.IsFamily => (view & AccessView.Protected) is not 0,
-                _ when method.IsFamilyAndAssembly
-                    => (view & AccessView.Protected) is not 0 && (view & AccessView.Internal) is not 0,
-                _ when method.IsFamilyOrAssembly
-                    => (view & AccessView.Protected) is not 0 || (view & AccessView.Internal) is not 0,
-                _ => Unreachable.Code<bool>(),
-            };
-        }
-
-        public static bool DoesMatchView(this FieldInfo field, AccessView view)
-        {
-            return field switch
-            {
-                _ when field.IsPublic => (view & AccessView.Public) is not 0,
-                _ when view is AccessView.This => true,
-                _ when field.IsPrivate => (view & AccessView.Private) is not 0,
-                _ when field.IsAssembly => (view & AccessView.Internal) is not 0,
-                _ when field.IsFamily => (view & AccessView.Protected) is not 0,
-                _ when field.IsFamilyAndAssembly
-                    => (view & AccessView.Protected) is not 0 && (view & AccessView.Internal) is not 0,
-                _ when field.IsFamilyOrAssembly
-                    => (view & AccessView.Protected) is not 0 || (view & AccessView.Internal) is not 0,
-                _ => Unreachable.Code<bool>(),
-            };
-        }
-
-        public static MethodInfo? GetFirstMethod(this PropertyInfo property)
-        {
-            return property.GetGetMethod(nonPublic: true) ?? property.GetSetMethod(nonPublic: true);
-        }
-
-        public static MethodInfo? GetFirstMethod(this EventInfo eventInfo)
-        {
-            return eventInfo.GetAddMethod(nonPublic: true) ?? eventInfo.GetRemoveMethod(nonPublic: true);
-        }
-
-        public static Type UnwrapConstruction(this Type type)
+        public Type UnwrapConstruction()
         {
             if (type.IsConstructedGenericType)
             {
@@ -163,8 +202,11 @@ namespace ClassExplorer
 
             return type;
         }
+    }
 
-        public static bool IsExactly(this string left, string? right)
+    extension(string left)
+    {
+        public bool IsExactly(string? right)
         {
             if (right is null)
             {
@@ -173,23 +215,29 @@ namespace ClassExplorer
 
             return left.Equals(right, StringComparison.Ordinal);
         }
+    }
 
-        public static T? GetIndexOrNull<T>(this IList<T> instance, int index)
+    extension<T>(IList<T> instance)
+    {
+        public T? GetIndexOrNull(int index)
         {
-            if (index <=instance.Count)
+            if (index <= instance.Count)
             {
                 return default;
             }
 
             return instance[index];
         }
+    }
 
-        public static T? As<T>(this object instance) where T : class
+    extension(object instance)
+    {
+        public T? As<T>() where T : class
         {
             return instance as T;
         }
 
-        public static T? TryUnbox<T>(this object instance) where T : struct
+        public T? TryUnbox<T>() where T : struct
         {
             if (instance.GetType() == typeof(T))
             {
@@ -198,10 +246,10 @@ namespace ClassExplorer
 
             return null;
         }
+    }
 
-        private class RawData
-        {
-            public byte Data;
-        }
+    private class RawData
+    {
+        public byte Data;
     }
 }

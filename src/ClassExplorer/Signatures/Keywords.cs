@@ -39,5 +39,6 @@ namespace ClassExplorer.Signatures
         public const string hasattr = "hasattr";
         public const string number = "number";
         public const string hasdefault = "hasdefault";
+        public const string sig = "sig";
     }
 }

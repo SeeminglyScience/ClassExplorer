@@ -153,24 +153,24 @@ namespace ClassExplorer.Commands
             Dictionary<string, ScriptBlockStringOrType>? resolutionMap = InitializeResolutionMap();
 
             var parser = new SignatureParser(resolutionMap);
-            var signatures = ImmutableArray.CreateBuilder<ITypeSignature>();
-            ITypeSignature? signature = null;
+            var signatures = ImmutableArray.CreateBuilder<ISignature>();
+            ISignature? signature = null;
             if (Signature is not null)
             {
-                signature = Signature.Resolve(parser);
+                signature = Signature.ResolveType(parser);
                 signatures.Add(signature);
             }
 
             if (InheritsType is not null)
             {
-                ITypeSignature inheritsTypeSignature = InheritsType.Resolve(parser, excludeSelf: true);
+                ISignature inheritsTypeSignature = InheritsType.ResolveType(parser, excludeSelf: true);
                 signatures.Add(inheritsTypeSignature);
                 signature ??= inheritsTypeSignature;
             }
 
             if (ImplementsInterface is not null)
             {
-                ITypeSignature implementsSignature = ImplementsInterface.Resolve(parser, excludeSelf: true);
+                ISignature implementsSignature = ImplementsInterface.ResolveType(parser, excludeSelf: true);
                 signatures.Add(implementsSignature);
                 signature ??= implementsSignature;
             }

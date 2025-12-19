@@ -181,6 +181,10 @@ namespace ClassExplorer.Commands
             set => _options.Extension = value;
         }
 
+        [Parameter]
+        [Alias("sig")]
+        public ScriptBlockStringOrType? Signature { get; set; }
+
         private MemberSearch<PipelineEmitter<MemberInfo>> _search = null!;
 
         private protected override void OnNoInput()
@@ -212,6 +216,7 @@ namespace ClassExplorer.Commands
             _options.ResolutionMap = resolutionMap;
             _options.AccessView = AccessView;
             _options.Decoration = Decoration;
+            _options.Signature = Signature;
             _search = Search.Members(_options, new PipelineEmitter<MemberInfo>(this));
         }
     }
