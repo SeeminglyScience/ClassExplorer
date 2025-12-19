@@ -19,14 +19,14 @@ jobs:
     name: Publish
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v6
     - name: Test and Build
       run: ./build.ps1 -Force -Publish -Configuration Release
       env:
         GALLERY_API_KEY: ${{ secrets.GALLERY_API_KEY }}
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Unit Test Results
         path: ./TestResults/Pester.xml
