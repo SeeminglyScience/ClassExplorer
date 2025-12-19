@@ -4,15 +4,15 @@ using System.Reflection;
 
 namespace ClassExplorer.Signatures
 {
-    internal sealed class AnyOfSignature : TypeSignature
+    internal sealed class AnyOfSignature : UniversialSignature
     {
-        internal AnyOfSignature(ImmutableArray<ITypeSignature> elements)
+        internal AnyOfSignature(ImmutableArray<ISignature> elements)
         {
             Poly.Assert(!elements.IsDefaultOrEmpty);
             Elements = elements;
         }
 
-        internal ImmutableArray<ITypeSignature> Elements { get; }
+        internal ImmutableArray<ISignature> Elements { get; }
 
         public override bool IsMatch(ParameterInfo parameter)
         {
@@ -32,6 +32,19 @@ namespace ClassExplorer.Signatures
             foreach (ITypeSignature signature in Elements)
             {
                 if (signature.IsMatch(type))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override bool IsMatch(MemberInfo subject)
+        {
+            foreach (IMemberSignature signature in Elements)
+            {
+                if (signature.IsMatch(subject))
                 {
                     return true;
                 }

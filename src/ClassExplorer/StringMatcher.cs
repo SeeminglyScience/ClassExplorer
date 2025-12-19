@@ -57,6 +57,8 @@ internal sealed class StringMatcher
     {
         // There's a solid chance this isn't actually faster than just branching
         // here, I'll test one day.
+        //
+        // 2025 edit: yeah dude of course branching would be faster this is silly lol
         return _matcher(input, _expected, _pattern);
     }
 

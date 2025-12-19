@@ -268,21 +268,21 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
         if (_options.GenericParameter is not null)
         {
             filters.AddFilter(
-                new GenericParameterTypeSignature(_options.GenericParameter.Resolve(parser)),
+                new GenericParameterTypeSignature(_options.GenericParameter.ResolveType(parser)),
                 static (member, signature) => signature.IsMatch(member));
         }
 
         if (_options.ParameterType is not null)
         {
             filters.AddFilter(
-                new ParameterTypeSignature(_options.ParameterType.Resolve(parser)),
+                new ParameterTypeSignature(_options.ParameterType.ResolveType(parser)),
                 static (member, signature) => signature.IsMatch(member));
         }
 
         if (_options.ReturnType is not null)
         {
             filters.AddFilter(
-                new ReturnTypeSignature(_options.ReturnType.Resolve(parser)),
+                new ReturnTypeSignature(_options.ReturnType.ResolveType(parser)),
                 static (member, signature) => signature.IsMatch(member));
         }
 
@@ -293,6 +293,13 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
                     SignatureParser.ResolveAttributeTypeName(
                         _options.Decoration,
                         _options.ResolutionMap)),
+                static (member, signature) => signature.IsMatch(member));
+        }
+
+        if (_options.Signature is not null)
+        {
+            filters.AddFilter(
+                (IMemberSignature)_options.Signature.Resolve(parser, SignatureKind.Member),
                 static (member, signature) => signature.IsMatch(member));
         }
     }

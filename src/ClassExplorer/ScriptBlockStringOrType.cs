@@ -2,14 +2,13 @@ using System;
 using System.Collections.Immutable;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Runtime.CompilerServices;
 using ClassExplorer.Signatures;
 
 namespace ClassExplorer
 {
     public sealed class ScriptBlockStringOrType
     {
-        private ITypeSignature? _cachedType;
+        private ISignature? _cachedType;
 
         public ScriptBlockStringOrType(string? typeName) => Value = typeName;
 
@@ -21,7 +20,10 @@ namespace ClassExplorer
 
         internal object? Value { get; }
 
-        internal ITypeSignature Resolve(SignatureParser parser, bool isForMap = false, bool excludeSelf = false)
+        internal ISignature ResolveType(SignatureParser parser, bool isForMap = false, bool excludeSelf = false)
+            => Resolve(parser, SignatureKind.Type, isForMap, excludeSelf);
+
+        internal ISignature Resolve(SignatureParser parser, SignatureKind expected, bool isForMap = false, bool excludeSelf = false)
         {
             if (_cachedType is not null)
             {
@@ -30,7 +32,7 @@ namespace ClassExplorer
 
             if (Value is Type exactType)
             {
-                static ITypeSignature SignatureForType(Type type, bool isForMap, bool excludeSelf)
+                static ISignature SignatureForType(Type type, SignatureKind expected, bool isForMap, bool excludeSelf)
                 {
                     if (isForMap)
                     {
@@ -40,7 +42,7 @@ namespace ClassExplorer
                     if (excludeSelf)
                     {
                         return new AllOfTypeSignature(
-                            ImmutableArray.Create<ITypeSignature>(
+                            ImmutableArray.Create<ISignature>(
                                 new AssignableTypeSignature(type),
                                 new NotTypeSignature(new ExactTypeSignature(type))));
                     }
@@ -48,12 +50,12 @@ namespace ClassExplorer
                     return new ContainsSignature(new AssignableTypeSignature(type));
                 }
 
-                return _cachedType = SignatureForType(exactType, isForMap, excludeSelf);
+                return _cachedType = SignatureForType(exactType, expected, isForMap, excludeSelf);
             }
 
             if (Value is ScriptBlock scriptBlock)
             {
-                return _cachedType = parser.Parse(scriptBlock);
+                return _cachedType = parser.Parse(scriptBlock, expected);
             }
 
             if (Value is string typeName)
@@ -75,7 +77,7 @@ namespace ClassExplorer
                 }
 
                 ScriptBlockAst ast = GetAstForString(typeName);
-                ITypeSignature signature = parser.Parse(ast);
+                ISignature signature = parser.Parse(ast, expected);
                 if (isForMap)
                 {
                     return _cachedType = signature;
@@ -87,7 +89,7 @@ namespace ClassExplorer
                     {
                         return _cachedType =
                             new AllOfTypeSignature(
-                                ImmutableArray.Create<ITypeSignature>(
+                                ImmutableArray.Create<ISignature>(
                                     assignable,
                                     new NotTypeSignature(new ExactTypeSignature(assignable.Type))));
                     }
@@ -98,7 +100,7 @@ namespace ClassExplorer
                 return _cachedType = new ContainsSignature(signature);
             }
 
-            return Unreachable.Code<ITypeSignature>();
+            return Unreachable.Code<ISignature>();
         }
     }
 }

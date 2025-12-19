@@ -1066,6 +1066,17 @@ internal class SignatureWriter
         return NewLineNoIndent().NewLine();
     }
 
+    public SignatureWriter WriteMember(MemberInfo member)
+        => member switch
+        {
+            MethodBase m => Member(m),
+            EventInfo m => Member(m),
+            PropertyInfo m => Member(m),
+            FieldInfo m => Member(m),
+            Type m => Member(m),
+            _ => throw new ArgumentOutOfRangeException(nameof(member)),
+        };
+
     public SignatureWriter Member(Type type)
     {
         type = type.UnwrapConstruction();

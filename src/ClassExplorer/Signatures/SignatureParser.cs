@@ -19,7 +19,7 @@ namespace ClassExplorer.Signatures
 
         private readonly Dictionary<string, ScriptBlockStringOrType> _resolutionMap;
 
-        private readonly Lazy<string[]> _namespaces = new(static () => GetUsingNamespaces());
+        private readonly Lazy<string[]> _namespaces = new(static () => ReflectionCache.GetUsingNamespacesFromTLS());
 
         private string[] Namespaces => _namespaces.Value;
 
@@ -28,9 +28,18 @@ namespace ClassExplorer.Signatures
             _resolutionMap = resolutionMap ?? new();
         }
 
-        public static ITypeSignature Parse(ScriptBlock signature, Dictionary<string, ScriptBlockStringOrType>? resolutionMap)
+        public static ISignature ParseType(ScriptBlock signature, Dictionary<string, ScriptBlockStringOrType>? resolutionMap)
+            => Parse(signature, SignatureKind.Type, resolutionMap);
+
+        public static ISignature ParseMember(ScriptBlock signature, Dictionary<string, ScriptBlockStringOrType>? resolutionMap)
+            => Parse(signature, SignatureKind.Member, resolutionMap);
+
+        public static ISignature Parse(
+            ScriptBlock signature,
+            SignatureKind expected,
+            Dictionary<string, ScriptBlockStringOrType>? resolutionMap)
         {
-            return new SignatureParser(resolutionMap).Parse(signature);
+            return new SignatureParser(resolutionMap).Parse(signature, expected);
         }
 
         private static ExpressionAst GetFirstExpression(ScriptBlock signature)
@@ -79,17 +88,30 @@ namespace ClassExplorer.Signatures
             return commandExpression.Expression;
         }
 
-        internal ITypeSignature Parse(ScriptBlock signature)
+        internal ISignature Parse(ScriptBlock signature, SignatureKind expected) => Parse(GetFirstExpression(signature), expected);
+
+        internal ISignature Parse(ScriptBlockAst signature, SignatureKind expected) => Parse(GetFirstExpression(signature), expected);
+
+        private ISignature EnsureExpected(ISignature signature, SignatureKind expected, Ast errorPosition)
+            => EnsureExpected(signature, expected, errorPosition.Extent);
+
+        private ISignature EnsureExpected(ISignature signature, SignatureKind expected, ITypeName errorPosition)
+            => EnsureExpected(signature, expected, errorPosition.Extent);
+
+        private ISignature EnsureExpected(ISignature signature, SignatureKind expected, IScriptExtent errorPosition)
         {
-            return Parse(GetFirstExpression(signature));
+            if ((signature.SignatureKind & expected) is 0)
+            {
+                return ThrowUnexpectedSignatureKind(expected, signature.SignatureKind, errorPosition);
+            }
+
+            return signature;
         }
 
-        internal ITypeSignature Parse(ScriptBlockAst signature)
-        {
-            return Parse(GetFirstExpression(signature));
-        }
+        private ISignature ParseType(ExpressionAst expression)
+            => Parse(expression, SignatureKind.Type);
 
-        private ITypeSignature Parse(ExpressionAst expression)
+        private ISignature Parse(ExpressionAst expression, SignatureKind expected = SignatureKind.Any)
         {
             if (expression is ConvertExpressionAst convert)
             {
@@ -97,10 +119,10 @@ namespace ClassExplorer.Signatures
                 string asLower = typeName.Name.ToLowerInvariant();
                 return asLower switch
                 {
-                    Keywords.@ref => new RefSignature(RefKind.Ref, Parse(convert.Child)),
-                    Keywords.@out => new RefSignature(RefKind.Out, Parse(convert.Child)),
-                    Keywords.@in => new RefSignature(RefKind.In, Parse(convert.Child)),
-                    Keywords.anyref => new RefSignature(RefKind.AnyRef, Parse(convert.Child)),
+                    Keywords.@ref => EnsureExpected(new RefSignature(RefKind.Ref, ParseType(convert.Child)), expected, typeName),
+                    Keywords.@out => EnsureExpected(new RefSignature(RefKind.Out, ParseType(convert.Child)), expected, typeName),
+                    Keywords.@in => EnsureExpected(new RefSignature(RefKind.In, ParseType(convert.Child)), expected, typeName),
+                    Keywords.anyref => EnsureExpected(new RefSignature(RefKind.AnyRef, ParseType(convert.Child)), expected, typeName),
                     _ => ThrowSignatureParseException(
                         convert.Type.TypeName.Extent,
                         SR.ConvertMustBeRef),
@@ -109,25 +131,27 @@ namespace ClassExplorer.Signatures
 
             if (expression is TypeExpressionAst typeExpression)
             {
-                return Parse(typeExpression.TypeName);
+                return Parse(typeExpression.TypeName, expected);
             }
 
             return ThrowExpectedTypeExpression(expression.Extent);
         }
 
         [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowExpectedTypeExpression(IScriptExtent extent)
+        private static ISignature ThrowExpectedTypeExpression(IScriptExtent extent)
         {
             throw new SignatureParseException(
                 SR.NotTypeExpression,
                 extent);
         }
 
-        public ITypeSignature Parse(ITypeName typeName)
+        public ISignature ParseType(ITypeName typeName) => Parse(typeName, SignatureKind.Type);
+
+        public ISignature Parse(ITypeName typeName, SignatureKind expected = SignatureKind.Any)
         {
             if (typeName is ArrayTypeName array)
             {
-                return new ArraySignature(Parse(array.ElementType));
+                return EnsureExpected(new ArraySignature(ParseType(array.ElementType)), expected, typeName);
             }
 
             GetDefinitionAndArgs(
@@ -135,24 +159,29 @@ namespace ClassExplorer.Signatures
                 out TypeName definition,
                 out ReadOnlyCollection<ITypeName> genericArguments);
 
-            ITypeSignature signature = ParseDefinition(
+            ISignature signature = ParseDefinition(
                 definition,
                 genericArguments,
+                expected,
                 out bool argsConsumed);
 
             if (argsConsumed || genericArguments.Count is 0)
             {
-                return signature;
+                return EnsureExpected(signature, expected, definition);
             }
 
-            return new GenericTypeSignature(
-                signature,
-                Parse(genericArguments, definition));
+            return EnsureExpected(
+                new GenericTypeSignature(
+                    signature,
+                    ParseTypes(genericArguments, definition)),
+                expected,
+                typeName);
         }
 
-        public ITypeSignature ParseDefinition(
+        public ISignature ParseDefinition(
             TypeName typeName,
             ReadOnlyCollection<ITypeName> args,
+            SignatureKind expected,
             out bool argsConsumed)
         {
             string nameAsLower = typeName.Name.ToLowerInvariant();
@@ -167,77 +196,87 @@ namespace ClassExplorer.Signatures
             if (i is > 0)
             {
                 argsConsumed = false;
-                var newTypeName = new TypeName(
+                TypeName newTypeName = new(
                     typeName.Extent,
                     typeName.Name.Substring(0, typeName.Name.Length - i));
 
                 if (IsGenericParameter(newTypeName, out kind, out position))
                 {
                     argsConsumed = true;
-                    return new PointerSignature(
-                        CreateGenericSignature(kind, position, args),
-                        new RangeExpression(i));
+                    return EnsureExpected(
+                        new PointerSignature(
+                            CreateGenericSignature(kind, position, args),
+                            new RangeExpression(i)),
+                        expected,
+                        typeName);
                 }
 
-                return new PointerSignature(Parse(newTypeName), new RangeExpression(i));
+                return EnsureExpected(
+                    new PointerSignature(ParseType(newTypeName), new RangeExpression(i)),
+                    expected,
+                    typeName);
             }
 
             if (_resolutionMap.TryGetValue(typeName.Name, out ScriptBlockStringOrType? input))
             {
                 argsConsumed = false;
-                return input.Resolve(this, isForMap: true);
+                return EnsureExpected(input.Resolve(this, expected, isForMap: true), expected, typeName);
             }
 
             if (IsGenericParameter(typeName, out kind, out position))
             {
                 argsConsumed = true;
-                return CreateGenericSignature(kind, position, args);
+                return EnsureExpected(CreateGenericSignature(kind, position, args), expected, typeName);
             }
 
             if (IsIndex(nameAsLower.AsSpan(), out RangeExpression? indexRange))
             {
                 argsConsumed = false;
-                return new ParameterIndexSignature(indexRange);
+                return EnsureExpected(new ParameterIndexSignature(indexRange), expected, typeName);
             }
 
             argsConsumed = false;
-            return nameAsLower switch
-            {
-                Keywords.exact => Consume(new ExactTypeSignature(SingleType(Keywords.exact, typeName, args)), out argsConsumed),
-                Keywords.assignable => Consume(new AssignableTypeSignature(SingleType(Keywords.assignable, typeName, args)), out argsConsumed),
-                Keywords.contains => Consume(new ContainsSignature(ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.@ref => Consume(new RefSignature(RefKind.Ref, ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.anyref => Consume(new RefSignature(RefKind.AnyRef, ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.@out => Consume(new RefSignature(RefKind.Out, ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.@in => Consume(new RefSignature(RefKind.In, ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.anyof => Consume(new AnyOfSignature(Parse(args, typeName)), out argsConsumed),
-                Keywords.allof => Consume(new AllOfTypeSignature(Parse(args, typeName)), out argsConsumed),
-                Keywords.not => Consume(new NotTypeSignature(ParseSingle(args, typeName)), out argsConsumed),
-                Keywords.@class => new TypeClassification(ClassificationKind.Class),
-                Keywords.@struct => new TypeClassification(ClassificationKind.Struct),
-                Keywords.record => new TypeClassification(ClassificationKind.Record),
-                Keywords.recordclass => new TypeClassification(ClassificationKind.Record | ClassificationKind.Class),
-                Keywords.recordstruct => new TypeClassification(ClassificationKind.Record | ClassificationKind.Struct),
-                Keywords.readonlyclass => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Class),
-                Keywords.readonlystruct => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Struct),
-                Keywords.readonlyrefstruct => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Ref | ClassificationKind.Struct),
-                Keywords.refstruct => new TypeClassification(ClassificationKind.Ref | ClassificationKind.Struct),
-                Keywords.@enum => new TypeClassification(ClassificationKind.Enum),
-                Keywords.referencetype => new TypeClassification(ClassificationKind.ReferenceType),
-                Keywords.@interface => new TypeClassification(ClassificationKind.Interface),
-                Keywords.@abstract => new TypeClassification(ClassificationKind.Abstract),
-                Keywords.concrete => new TypeClassification(ClassificationKind.Concrete),
-                Keywords.primitive => new TypeClassification(ClassificationKind.Primitive),
-                Keywords.any => new AnySignature(),
-                Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),
-                Keywords.hasdefault => new HasDefaultSignature(),
-                Keywords.number => new NumberTypeSignature(),
-                Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
-                Keywords.pointer => Consume(ParsePointer(args, typeName), out argsConsumed),
-                _ => Default(typeName, args),
-            };
+            return EnsureExpected(
+                nameAsLower switch
+                {
+                    Keywords.exact => Consume(new ExactTypeSignature(SingleType(Keywords.exact, typeName, args)), out argsConsumed),
+                    Keywords.assignable => Consume(new AssignableTypeSignature(SingleType(Keywords.assignable, typeName, args)), out argsConsumed),
+                    Keywords.contains => Consume(new ContainsSignature(ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.@ref => Consume(new RefSignature(RefKind.Ref, ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.anyref => Consume(new RefSignature(RefKind.AnyRef, ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.@out => Consume(new RefSignature(RefKind.Out, ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.@in => Consume(new RefSignature(RefKind.In, ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.anyof => Consume(new AnyOfSignature(Parse(args, typeName)), out argsConsumed),
+                    Keywords.allof => Consume(new AllOfTypeSignature(Parse(args, typeName)), out argsConsumed),
+                    Keywords.not => Consume(new NotTypeSignature(ParseSingle(args, typeName)), out argsConsumed),
+                    Keywords.@class => new TypeClassification(ClassificationKind.Class),
+                    Keywords.@struct => new TypeClassification(ClassificationKind.Struct),
+                    Keywords.record => new TypeClassification(ClassificationKind.Record),
+                    Keywords.recordclass => new TypeClassification(ClassificationKind.Record | ClassificationKind.Class),
+                    Keywords.recordstruct => new TypeClassification(ClassificationKind.Record | ClassificationKind.Struct),
+                    Keywords.readonlyclass => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Class),
+                    Keywords.readonlystruct => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Struct),
+                    Keywords.readonlyrefstruct => new TypeClassification(ClassificationKind.ReadOnly | ClassificationKind.Ref | ClassificationKind.Struct),
+                    Keywords.refstruct => new TypeClassification(ClassificationKind.Ref | ClassificationKind.Struct),
+                    Keywords.@enum => new TypeClassification(ClassificationKind.Enum),
+                    Keywords.referencetype => new TypeClassification(ClassificationKind.ReferenceType),
+                    Keywords.@interface => new TypeClassification(ClassificationKind.Interface),
+                    Keywords.@abstract => new TypeClassification(ClassificationKind.Abstract),
+                    Keywords.concrete => new TypeClassification(ClassificationKind.Concrete),
+                    Keywords.primitive => new TypeClassification(ClassificationKind.Primitive),
+                    Keywords.any => new AnySignature(),
+                    Keywords.generic => Consume(ParseGeneric(args, typeName), out argsConsumed),
+                    Keywords.hasdefault => new HasDefaultSignature(),
+                    Keywords.number => new NumberTypeSignature(),
+                    Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
+                    Keywords.pointer => Consume(ParsePointer(args, typeName), out argsConsumed),
+                    Keywords.sig => Consume(ParseFullMethodSignature(args, typeName), out argsConsumed),
+                    _ => Default(typeName, args),
+                },
+                expected,
+                typeName);
 
-            ITypeSignature Decoration(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+            ISignature Decoration(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
             {
                 if (args is not { Count: 1 })
                 {
@@ -262,7 +301,7 @@ namespace ClassExplorer.Signatures
                 return new DecorationSignature(name);
             }
 
-            ITypeSignature Default(TypeName typeName, ReadOnlyCollection<ITypeName> args)
+            ISignature Default(TypeName typeName, ReadOnlyCollection<ITypeName> args)
             {
                 ReadOnlySpan<char> name = typeName.Name.AsSpan();
 
@@ -304,14 +343,33 @@ namespace ClassExplorer.Signatures
                 return new AssignableTypeSignature(ResolveReflectionType(typeName, args.Count));
             }
 
-            static ITypeSignature Consume(ITypeSignature signature, out bool argsConsumed)
+            static ISignature Consume(ISignature signature, out bool argsConsumed)
             {
                 argsConsumed = true;
                 return signature;
             }
         }
 
-        private ITypeSignature ParseGeneric(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+        private ISignature ParseFullMethodSignature(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+        {
+            if (args.Count is 0)
+            {
+                return ThrowSignatureParseException(
+                    errorPosition.Extent,
+                    SR.SigBadArgs);
+            }
+
+            ISignature[] parameters = new ISignature[args.Count - 1];
+            for (int i = args.Count - 2; i >= 0; i--)
+            {
+                parameters[i] = ParseType(args[i]);
+            }
+
+            ISignature returnType = ParseType(args[args.Count - 1]);
+            return new FullMethodSignature(returnType, Unsafe.As<ISignature[], ImmutableArray<ITypeSignature>>(ref parameters));
+        }
+
+        private ISignature ParseGeneric(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
         {
             if (args.Count is not 2)
             {
@@ -337,7 +395,7 @@ namespace ClassExplorer.Signatures
             return new GenericTypeSignature(definition, argSignatures.MoveToImmutable());
         }
 
-        private ITypeSignature ParsePointer(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+        private ISignature ParsePointer(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
         {
             if (args.Count is 1)
             {
@@ -391,9 +449,58 @@ namespace ClassExplorer.Signatures
             return Parse(args[0]);
         }
 
-        private ImmutableArray<ITypeSignature> Parse(
+        private ImmutableArray<ITypeSignature> ParseTypes(
             ReadOnlyCollection<ITypeName> args,
             ITypeName errorPosition,
+            int assertAtLeast = 1,
+            int assertAtMax = -1)
+        {
+            ISignature[] signatures = ParseImpl(
+                args,
+                errorPosition,
+                SignatureKind.Type,
+                assertAtLeast,
+                assertAtMax);
+
+            return Unsafe.As<ISignature[], ImmutableArray<ITypeSignature>>(ref signatures);
+        }
+
+        private ImmutableArray<IMemberSignature> ParseMembers(
+            ReadOnlyCollection<ITypeName> args,
+            ITypeName errorPosition,
+            int assertAtLeast = 1,
+            int assertAtMax = -1)
+        {
+            ISignature[] signatures = ParseImpl(
+                args,
+                errorPosition,
+                SignatureKind.Member,
+                assertAtLeast,
+                assertAtMax);
+
+            return Unsafe.As<ISignature[], ImmutableArray<IMemberSignature>>(ref signatures);
+        }
+
+        private ImmutableArray<ISignature> Parse(
+            ReadOnlyCollection<ITypeName> args,
+            ITypeName errorPosition,
+            int assertAtLeast = 1,
+            int assertAtMax = -1)
+        {
+            ISignature[] signatures = ParseImpl(
+                args,
+                errorPosition,
+                SignatureKind.Any,
+                assertAtLeast,
+                assertAtMax);
+
+            return Unsafe.As<ISignature[], ImmutableArray<ISignature>>(ref signatures);
+        }
+
+        private ISignature[] ParseImpl(
+            ReadOnlyCollection<ITypeName> args,
+            ITypeName errorPosition,
+            SignatureKind expected = SignatureKind.Any,
             int assertAtLeast = 1,
             int assertAtMax = -1)
         {
@@ -411,13 +518,22 @@ namespace ClassExplorer.Signatures
                     SR.Format(SR.NeedsLessArgs, errorPosition.Name, assertAtMax));
             }
 
-            var builder = ImmutableArray.CreateBuilder<ITypeSignature>(args.Count);
-            foreach (ITypeName typeName in args)
+            ISignature[] signatures = new ISignature[args.Count];
+            for (int i = 0; i < args.Count; i++)
             {
-                builder.Add(Parse(typeName));
+                ITypeName typeName = args[i];
+                signatures[i] = EnsureExpected(Parse(typeName), expected, typeName.Extent);
             }
 
-            return builder.MoveToImmutable();
+            return signatures;
+        }
+
+        [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
+        private ISignature ThrowUnexpectedSignatureKind(SignatureKind expected, SignatureKind actual, IScriptExtent errorPosition)
+        {
+            throw new SignatureParseException(
+                SR.Format(SR.UnexpectedSignatureKind, expected, actual),
+                errorPosition);
         }
 
         private Type SingleType(string name, TypeName subject, ReadOnlyCollection<ITypeName> genericArgs)
@@ -572,51 +688,6 @@ namespace ClassExplorer.Signatures
             goto retry;
         }
 
-        private static string[] GetUsingNamespaces()
-        {
-            EngineIntrinsics? engine;
-
-            using (var pwsh = PowerShell.Create(RunspaceMode.CurrentRunspace))
-            {
-                engine = pwsh.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().FirstOrDefault();
-            }
-
-            if (engine is null)
-            {
-                return s_defaultUsing;
-            }
-
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            object? ssi = engine.SessionState.GetType()
-                .GetProperty("Internal", flags)
-                ?.GetValue(engine.SessionState);
-
-            if (ssi is null) return s_defaultUsing;
-
-            object? currentScope = ssi.GetType()
-                .GetProperty("CurrentScope", flags)
-                ?.GetValue(ssi);
-
-            if (currentScope is null) return s_defaultUsing;
-
-            object? typeResolutionState = currentScope.GetType()
-                .GetProperty("TypeResolutionState", flags)
-                ?.GetValue(currentScope);
-
-            if (typeResolutionState is null) return s_defaultUsing;
-
-            object? namespaces = typeResolutionState.GetType()
-                .GetField("namespaces", flags)
-                ?.GetValue(typeResolutionState);
-
-            if (namespaces is string[] result)
-            {
-                return result;
-            }
-
-            return s_defaultUsing;
-        }
-
         private void GetDefinitionAndArgs(ITypeName name, out TypeName definition, out ReadOnlyCollection<ITypeName> genericArgs)
         {
             if (name is TypeName typeName)
@@ -639,7 +710,7 @@ namespace ClassExplorer.Signatures
         }
 
         [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
-        private static ITypeSignature ThrowSignatureParseException(IScriptExtent extent, string message)
+        private static ISignature ThrowSignatureParseException(IScriptExtent extent, string message)
         {
             throw new SignatureParseException(message, extent);
         }
@@ -709,7 +780,7 @@ namespace ClassExplorer.Signatures
             return false;
         }
 
-        private ITypeSignature CreateGenericSignature(
+        private ISignature CreateGenericSignature(
             GenericParameterKind kind,
             int position,
             ReadOnlyCollection<ITypeName> args)
