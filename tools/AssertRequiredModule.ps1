@@ -41,7 +41,7 @@ end {
 
     # TODO: Install required versions into the tools folder
     try {
-        Import-Module @importModuleSplat -Force
+        Import-Module @importModuleSplat -Force -ErrorAction Stop
     } catch [System.IO.FileNotFoundException] {
         Install-Module $Name -MinimumVersion $RequiredVersion -AllowPrerelease:$Prerelease -Force:$Force -Scope CurrentUser
         Import-Module @importModuleSplat -Force

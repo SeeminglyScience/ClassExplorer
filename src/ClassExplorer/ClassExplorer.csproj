@@ -1,41 +1,52 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net471</TargetFrameworks>
-    <!-- <TargetFrameworks>net471;netcoreapp3.1</TargetFrameworks> -->
+    <TargetFrameworks>$(ModernTarget);$(LegacyTarget)</TargetFrameworks>
+    <!-- <TargetFrameworks>$(LegacyTarget);$(ModernTarget)</TargetFrameworks> -->
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
-    <!-- <AssemblyName>ClassExplorer2</AssemblyName> -->
+    <ResXGenerator_NullForgivingOperators>true</ResXGenerator_NullForgivingOperators>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aigamo.ResXGenerator" Version="4.2.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="PolySharp" Version="1.15.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == '$(LegacyTarget)' ">
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net471' ">
-    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
-  </ItemGroup>
-
   <ItemGroup>
-    <!--
-      omnisharp-vscode doesn't seem to pick this up without this.
-      For now we'll ignore the compiler warning
-    -->
-    <Compile Include="$(IntermediateOutputPath)\SR.Designer.cs" />
     <EmbeddedResource Update="SR.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <StronglyTypedFileName>$(IntermediateOutputPath)\SR.Designer.cs</StronglyTypedFileName>
-      <LastGenOutput>SR.Designer.cs</LastGenOutput>
+      <PartialClass>true</PartialClass>
+      <GenerateCode>true</GenerateCode>
+      <GenerateResource>false</GenerateResource>
       <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
       <StronglyTypedNamespace>ClassExplorer</StronglyTypedNamespace>
       <StronglyTypedClassName>SR</StronglyTypedClassName>
     </EmbeddedResource>
   </ItemGroup>
 
-  <Target Name="FixResGen" BeforeTargets="AfterResGen">
-    <Exec ConsoleToMsBuild="true" Command="pwsh -NoLogo -NoProfile -NonInteractive -Command &quot;Set-Content '$(IntermediateOutputPath)\SR.Designer.cs' ((Get-Content '$(IntermediateOutputPath)\SR.Designer.cs' -Raw) -replace '(?m)^(\s*internal )class', '$1partial class')&quot;" />
-  </Target>
+  <PropertyGroup>
+    <!-- Create files for source generated code -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude the output of source generators from the compilation -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
+  </ItemGroup>
 
 </Project>
