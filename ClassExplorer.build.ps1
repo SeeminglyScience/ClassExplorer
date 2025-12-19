@@ -103,7 +103,7 @@ task GetProjectInfo {
 }
 
 task AssertDotNet {
-    $script:dotnet = & $GetDotNet -Unix:$script:_IsWindows
+    $script:dotnet = & $GetDotNet -Unix:(-not $script:_IsWindows)
 }
 
 task AssertOpenCover -If { $GenerateCodeCoverage.IsPresent } {
