@@ -69,6 +69,8 @@ namespace ClassExplorer
                         CompletionResultType.ParameterValue,
                         tip));
             }
+
+            public void Invoke(Type value, object? source) => Invoke(value);
         }
     }
 }

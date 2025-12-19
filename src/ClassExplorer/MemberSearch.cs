@@ -42,6 +42,8 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
         {
             _parent.SearchSingleType(value);
         }
+
+        public void Invoke(Type value, object? instance) => Invoke(value);
     }
 
     public override void SearchSingleObject(PSObject pso)
@@ -105,6 +107,7 @@ internal sealed class MemberSearch<TCallback> : ReflectionSearch<MemberInfo, TCa
             return;
         }
 
+        _options.Source = pso.BaseObject;
         SearchSingleType(targetType);
     }
 

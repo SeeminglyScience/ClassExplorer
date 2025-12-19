@@ -181,6 +181,14 @@ namespace ClassExplorer.Commands
             set => _options.Extension = value;
         }
 
+        [Parameter(DontShow = true, ValueFromPipelineByPropertyName = true)]
+        [Alias("__ce_Instance")]
+        public object? PropagatedInstance
+        {
+            get => _options.Source;
+            set => _options.Source = value;
+        }
+
         [Parameter]
         [Alias("sig")]
         public ScriptBlockStringOrType? Signature { get; set; }

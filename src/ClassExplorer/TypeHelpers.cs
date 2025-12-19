@@ -1,9 +1,33 @@
 using System;
+using System.Management.Automation;
+using System.Reflection;
 
 namespace ClassExplorer;
 
 internal static class TypeHelpers
 {
+    public static Assembly? GetReflectedAssembly(object? member)
+    {
+        if (member is null)
+        {
+            return null;
+        }
+
+        if (member is PSObject pso)
+        {
+            member = pso.BaseObject;
+        }
+
+        return member switch
+        {
+            Type m => m.Assembly,
+            MethodInfo m => m.ReflectedType?.Assembly ?? m.Module?.Assembly,
+            MemberInfo m => m.ReflectedType?.Assembly,
+            Assembly a => a,
+            _ => member?.GetType()?.Assembly,
+        };
+    }
+
     // So if you have a structure like:
     //
     // class A<T>

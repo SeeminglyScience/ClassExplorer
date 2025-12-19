@@ -36,6 +36,8 @@ namespace ClassExplorer
             public ListBuilder(List<Type> types) => _types = types;
 
             public void Invoke(Type value) => _types.Add(value);
+
+            public void Invoke(Type value, object? source) => Invoke(value);
         }
 
         /// <summary>
@@ -96,6 +98,8 @@ namespace ClassExplorer
                         CompletionResultType.ParameterValue,
                         tip));
             }
+
+            public void Invoke(Type value, object? source) => Invoke(value);
         }
     }
 }

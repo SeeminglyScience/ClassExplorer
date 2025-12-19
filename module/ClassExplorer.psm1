@@ -11,4 +11,4 @@ if (-not $env:CLASS_EXPLORER_TRUE_CHARACTER) {
 Update-FormatData -PrependPath $PSScriptRoot\ClassExplorer.format.ps1xml
 Update-TypeData -PrependPath $PSScriptRoot\ClassExplorer.types.ps1xml -ErrorAction Ignore
 
-Export-ModuleMember -Cmdlet Find-Type, Find-Member, Format-MemberSignature, Get-Assembly, Get-Parameter -Alias *
+Export-ModuleMember -Cmdlet Find-Type, Find-Member, Format-MemberSignature, Get-Assembly, Get-Parameter, Invoke-Member, Get-AssemblyLoadContext -Alias *

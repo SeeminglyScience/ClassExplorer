@@ -93,13 +93,13 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
     protected static bool AggregateFilter(TMemberType member, object? state, bool isPipeFilter = false)
     {
         ReflectionSearch<TMemberType, TCallback, TOptions> context =
-            Unsafe.As<ReflectionSearch<TMemberType, TCallback, TOptions>>(state);
+            Unsafe.As<ReflectionSearch<TMemberType, TCallback, TOptions>>(state)!;
 
         try
         {
             if (context._filters.Length is 0)
             {
-                context._callback.Invoke(member);
+                context._callback.Invoke(member, context._options.Source);
                 return false;
             }
 
@@ -134,7 +134,7 @@ internal abstract class ReflectionSearch<TMemberType, TCallback, TOptions>
                 return false;
             }
 
-            context._callback.Invoke(member);
+            context._callback.Invoke(member, context._options.Source);
             return false;
         }
         catch (PipelineStoppedException)
