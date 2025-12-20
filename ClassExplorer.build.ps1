@@ -52,7 +52,7 @@ function GetArtifactPath {
         }
 
         # dotnet always uses lower case for the path now for some reason
-        $target = $target.ToLowerInvariant()
+        $config = $config.ToLowerInvariant()
         if (-not $FileName) {
             return "./artifacts/publish/$moduleName/${config}_${target}"
         }
