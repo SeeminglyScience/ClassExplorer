@@ -51,6 +51,8 @@ function GetArtifactPath {
             $target = $legacyTarget
         }
 
+        # dotnet always uses lower case for the path now for some reason
+        $target = $target.ToLowerInvariant()
         if (-not $FileName) {
             return "./artifacts/publish/$moduleName/${config}_${target}"
         }
@@ -140,10 +142,6 @@ task BuildDll {
 }
 
 task CopyToRelease  {
-    $version = $script:ModuleVersion
-    $modern = $script:ModernTarget
-    $legacy = $script:LegacyTarget
-
     $release = $script:ReleasePath
     if (-not (Test-Path -LiteralPath $release)) {
         $null = New-Item $release -ItemType Directory
