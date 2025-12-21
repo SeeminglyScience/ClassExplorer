@@ -677,3 +677,4 @@ Matched MemberInfo objects will be returned to the pipeline.
 [Get-Assembly](Get-Assembly.md)
 [Get-Parameter](Get-Parameter.md)
 [Format-MemberSignature](Format-MemberSignature.md)
+[Invoke-Member](Invoke-Member.md)
