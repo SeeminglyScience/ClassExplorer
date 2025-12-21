@@ -99,7 +99,7 @@ task AssertDotNet {
     $script:dotnet = & $GetDotNet -Unix:(-not $script:_IsWindows)
 }
 
-task AssertOpenCover -If { $true } {
+task AssertOpenCover -If { $false } {
     if (-not $script:_IsWindows) {
         Write-Warning 'Generating code coverage from .NET core is currently unsupported, disabling code coverage generation.'
         $script:GenerateCodeCoverage = $false
