@@ -99,7 +99,7 @@ task AssertDotNet {
     $script:dotnet = & $GetDotNet -Unix:(-not $script:_IsWindows)
 }
 
-task AssertOpenCover -If { $GenerateCodeCoverage.IsPresent } {
+task AssertOpenCover -If { $true } {
     if (-not $script:_IsWindows) {
         Write-Warning 'Generating code coverage from .NET core is currently unsupported, disabling code coverage generation.'
         $script:GenerateCodeCoverage = $false
@@ -176,18 +176,27 @@ task CopyToRelease  {
 }
 
 task DoTest -If { Test-Path ./test/*.ps1 } {
-    if (-not $script:_IsWindows) {
-        $scriptString = '
-            $projectPath = "{0}"
-            Invoke-Pester "$projectPath" -OutputFormat NUnitXml -OutputFile "$projectPath\testresults\pester.xml"
-            ' -f $PSScriptRoot
-    } else {
-        $scriptString = '
-            Set-ExecutionPolicy Bypass -Force -Scope Process
-            $projectPath = "{0}"
-            Invoke-Pester "$projectPath" -OutputFormat NUnitXml -OutputFile "$projectPath\testresults\pester.xml"
-            ' -f $PSScriptRoot
-    }
+
+    $scriptString = @(
+        if (-not $script:_IsWindows) {
+            'Set-ExecutionPolicy Bypass -Force -Scope Process'
+            ''
+        }
+
+        '$projectPath = ''{0}''' -f $PSScriptRoot
+        '$config = New-PesterConfiguration @{'
+        '    Run = @{'
+        '        Path = $projectPath'
+        '    }'
+        '    TestResult = @{'
+        '        Enable = $true'
+        '        OutputFormat = ''NUnitXml'''
+        '        OutputPath = "$projectPath\testresults.pester.xml"'
+        '    }'
+        '}'
+        ''
+        'Invoke-Pester -Configuration $config'
+    ) -join [Environment]::NewLine
 
     $encodedCommand =
         [convert]::ToBase64String(
@@ -199,7 +208,8 @@ task DoTest -If { Test-Path ./test/*.ps1 } {
         $powershellCommand = 'pwsh'
     }
 
-    $powershell = Get-Command -CommandType Application $powershellCommand | Select-Object -First 1 -ExpandProperty Source
+    $powershell = Get-Command -CommandType Application $powershellCommand |
+        Select-Object -First 1 -ExpandProperty Source
 
     # Can't be bothered atm, gotta modernize this at some point.
     $GenerateCodeCoverage = $false
