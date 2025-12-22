@@ -45,3 +45,10 @@ The `Format-MemberSignature` cmdlet uses the input reflection objects to generat
 The `Invoke-Member` cmdlet takes a reflection info (`System.Reflection.MemberInfo`) object and
 facilitates seamless invocation in a pipeline. `Invoke-Member` will handle any necessary
 conversions, unwrapping of psobjects, and streamlined `ref` handling for interactive use.
+
+### [Get-AssemblyLoadContext](Get-AssemblyLoadContext.md)
+
+The `Get-AssemblyLoadContext` cmdlet gets all currently active assembly load
+contexts (ALCs), or the relevant ALCs if any parameters are specified.
+
+This command is only supported in PowerShell 7+
