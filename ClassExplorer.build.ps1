@@ -275,7 +275,7 @@ task DoPublish {
         throw 'Could not find PSGallery API key!'
     }
 
-    Publish-Module -Name $Folders.Release -NuGetApiKey $apiKey -Force:$Force.IsPresent
+    Publish-Module -Name $script:ReleasePath -NuGetApiKey $apiKey -Force:$Force.IsPresent
 }
 
 task Build -Jobs GetProjectInfo, AssertDevDependencies, Clean, BuildDll, CopyToRelease, BuildDocs
