@@ -29,22 +29,22 @@ jobs:
     steps:
     - name: Check Version
       run: $PSVersionTable
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v6
     - name: Test and Build
       run: ./build.ps1 -Force -Configuration Release
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: matrix.os == 'windows-latest'
       with:
         name: ClassExplorer
         path: ./Release/ClassExplorer
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       if: matrix.os != 'windows-latest'
       with:
         name: ClassExplorer-${{ matrix.os }}
         path: ./Release/ClassExplorer
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Unit Test Results (${{ matrix.os }})
         path: ./TestResults/Pester.xml

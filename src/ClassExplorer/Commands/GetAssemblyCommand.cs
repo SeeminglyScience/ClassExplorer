@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
+using System.Runtime.Loader;
 
 namespace ClassExplorer.Commands
 {
@@ -91,6 +92,12 @@ namespace ClassExplorer.Commands
             if (InputObject.BaseObject is Assembly assembly)
             {
                 WriteObject(assembly, enumerateCollection: false);
+                return;
+            }
+
+            if (InputObject.BaseObject is AssemblyLoadContext alc)
+            {
+                WriteObject(ALC.SafeGetAssemblies(alc), enumerateCollection: true);
                 return;
             }
 

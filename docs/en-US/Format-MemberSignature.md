@@ -212,3 +212,5 @@ The formatted display string will be returned to the pipeline.
 [Find-Member](Find-Member.md)
 [Get-Assembly](Get-Assembly.md)
 [Get-Parameter](Get-Parameter.md)
+[Invoke-Member](Invoke-Member.md)
+[Get-AssemblyLoadContext](Get-AssemblyLoadContext.md)

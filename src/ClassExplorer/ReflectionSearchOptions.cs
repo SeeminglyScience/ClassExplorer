@@ -22,4 +22,6 @@ internal abstract class ReflectionSearchOptions
     public AccessView AccessView { get; set; }
 
     public ScriptBlockStringOrType? Decoration { get; set; }
+
+    public object? Source { get; set; }
 }

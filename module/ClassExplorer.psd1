@@ -48,13 +48,13 @@ ProcessorArchitecture = 'None'
 FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter', 'Format-MemberSignature'
+CmdletsToExport = 'Find-Member', 'Find-Type', 'Get-Assembly', 'Get-Parameter', 'Format-MemberSignature', 'Invoke-Member', 'Get-AssemblyLoadContext'
 
 # Variables to export from this module
 VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @('fit', 'fime', 'gasm', 'gpa')
+AliasesToExport = @('fit', 'fime', 'gasm', 'gpa', 'ivm', 'galc')
 
 # List of all files packaged with this module
 # FileList = @()

@@ -86,3 +86,5 @@ Matched parameters will be returned to the pipeline.
 [Find-Member](Find-Member.md)
 [Get-Assembly](Get-Assembly.md)
 [Format-MemberSignature](Format-MemberSignature.md)
+[Invoke-Member](Invoke-Member.md)
+[Get-AssemblyLoadContext](Get-AssemblyLoadContext.md)

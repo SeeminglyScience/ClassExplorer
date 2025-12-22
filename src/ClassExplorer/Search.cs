@@ -43,6 +43,8 @@ internal static class Search
             _result.Value = value;
             throw new CancelSearchException();
         }
+
+        public void Invoke(Type value, object? source) => Invoke(value);
     }
 
 #pragma warning disable RCS1194

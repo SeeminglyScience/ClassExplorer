@@ -22,20 +22,33 @@ Type signatures are a custom query language built into PowerShell type expressio
 
 ### [Find-Member](Find-Member.md)
 
-The Find-Member cmdlet searches the AppDomain for members that fit specified criteria. You can search the entire AppDomain, search in specific types, or filter an existing list of members.
+The `Find-Member` cmdlet searches the AppDomain for members that fit specified criteria. You can search the entire AppDomain, search in specific types, or filter an existing list of members.
 
 ### [Find-Type](Find-Type.md)
 
-The Find-Type cmdlet searches the AppDomain for .NET classes that match specified criteria.
+The `Find-Type` cmdlet searches the AppDomain for .NET classes that match specified criteria.
 
 ### [Get-Assembly](Get-Assembly.md)
 
-The Get-Assembly cmdlet gets assemblies loaded in the AppDomain.
+The `Get-Assembly` cmdlet gets assemblies loaded in the AppDomain.
 
 ### [Get-Parameter](Get-Parameter.md)
 
-The Get-Parameter cmdlet gets parameter info from a member.
+The `Get-Parameter` cmdlet gets parameter info from a member.
 
 ### [Format-MemberSignature](Format-MemberSignature.md)
 
-The Format-MemberSignature cmdlet uses the input reflection objects to generate reference library style C# pseudo code. Use this cmdlet to get a more in depth look at specific member including attribute decorations, generic type constraints, and more.
+The `Format-MemberSignature` cmdlet uses the input reflection objects to generate reference library style C# pseudo code. Use this cmdlet to get a more in depth look at specific member including attribute decorations, generic type constraints, and more.
+
+### [Invoke-Member](Invoke-Member.md)
+
+The `Invoke-Member` cmdlet takes a reflection info (`System.Reflection.MemberInfo`) object and
+facilitates seamless invocation in a pipeline. `Invoke-Member` will handle any necessary
+conversions, unwrapping of psobjects, and streamlined `ref` handling for interactive use.
+
+### [Get-AssemblyLoadContext](Get-AssemblyLoadContext.md)
+
+The `Get-AssemblyLoadContext` cmdlet gets all currently active assembly load
+contexts (ALCs), or the relevant ALCs if any parameters are specified.
+
+This command is only supported in PowerShell 7+

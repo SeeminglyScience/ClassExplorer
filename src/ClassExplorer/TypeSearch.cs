@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Management.Automation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using ClassExplorer.Signatures;
 
 namespace ClassExplorer;
@@ -37,18 +38,39 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
 
         foreach (Module module in modules)
         {
+            Type[]? types = null;
             try
             {
-                module.FindTypes(static (m, fc) => AggregateFilter(m, fc), this);
+                types = module.GetTypes();
             }
             catch (ReflectionTypeLoadException)
             {
+            }
+
+            if (types is null or [])
+            {
+                continue;
+            }
+
+            foreach (Type type in types)
+            {
+                AggregateFilter(type, this);
             }
         }
     }
 
     public override void SearchSingleObject(PSObject pso)
     {
+        if (pso.BaseObject is AssemblyLoadContext alc)
+        {
+            foreach (Assembly assemblyFromAlc in ALC.SafeGetAssemblies(alc))
+            {
+                ProcessAssembly(assemblyFromAlc);
+            }
+
+            return;
+        }
+
         if (pso.BaseObject is Assembly assembly)
         {
             ProcessAssembly(assembly);

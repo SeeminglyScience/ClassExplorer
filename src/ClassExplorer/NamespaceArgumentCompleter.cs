@@ -82,6 +82,8 @@ namespace ClassExplorer
                         CompletionResultType.ParameterValue,
                         @namespace));
             }
+
+            public void Invoke(Type value, object? source) => Invoke(value);
         }
     }
 }

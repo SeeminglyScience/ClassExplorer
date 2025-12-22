@@ -179,4 +179,19 @@ Message: {0}</value>
   <data name="RangeExpressionInvalidFormat" xml:space="preserve">
     <value>Input string was not in the correct format. Expected "0", "0..3", "..3" or "0.." where "0" is the start of the range and 3 is the end of the range.</value>
   </data>
+  <data name="WrongArgumentCount" xml:space="preserve">
+    <value>Expected {0} arguments but received {1} for member "{2}".</value>
+  </data>
+  <data name="MemberTypeNotSupported" xml:space="preserve">
+    <value>The member type "{0}" is not supported by "Invoke-Member".</value>
+  </data>
+  <data name="MemberNotWritable" xml:space="preserve">
+    <value>Unable to set the value of the member {0}.</value>
+  </data>
+  <data name="UnexpectedSignatureKind" xml:space="preserve">
+    <value>Expected signature of kind "{0}" but found a "{1}" signature.</value>
+  </data>
+  <data name="InvalidLanguageMode" xml:space="preserve">
+    <value>The 'Invoke-Member' command cannot be used outside of 'PSLanguageMode.FullLanguage'.</value>
+  </data>
 </root>

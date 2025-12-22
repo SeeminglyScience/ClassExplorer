@@ -165,13 +165,24 @@ Describe 'Find-Member cmdlet tests' {
     }
 
     It 'gets members for passed objects only once per type' {
-        $powershells = [powershell]::Create(), [powershell]::Create()
-        try {
-            $result = $powershells | Find-Member
-        } finally {
-            $powershells.ForEach('Dispose')
-        }
+        $type = compile '
+            public static void StaticMethod() { }
 
-        $result.Where{ $_.Name -eq 'Create' }.Count | Should -Be 3
+            public static int StaticProperty { get; set; }
+
+            public static int StaticField;
+
+            public static event System.EventHandler StaticEvent;
+
+            public void InstanceMethod() { }
+
+            public int InstanceProperty { get; set; }
+
+            public int InstanceField;
+
+            public event System.EventHandler InstanceEvent;'
+
+        $instances = $type::new(), $type::new()
+        $instances | Find-Member | Where-Object Name -eq InstanceMethod | Should -HaveCount 1
     }
 }

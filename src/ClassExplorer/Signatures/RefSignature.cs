@@ -33,14 +33,14 @@ namespace ClassExplorer.Signatures
                 return kind is RefKind.Out;
             }
 
-            if (parameter.IsDefined("System.Runtime.CompilerServices.IsReadOnlyAttribute"))
+            if (parameter.IsDecoratedReadOnly())
             {
                 return kind is RefKind.In;
             }
 
             if (parameter.Position is -1)
             {
-                if (parameter.IsDefined("System.Runtime.CompilerServices.IsReadOnlyAttribute"))
+                if (parameter.IsDecoratedReadOnly())
                 {
                     return kind is RefKind.In;
                 }
