@@ -37,13 +37,19 @@ internal static class ReflectionCache
 
         if (GetExecutionContextFromTLSMethod is null) return null;
 
-        PropertyInfo? getEngineSessionState = ExecutionContextType?.GetProperty("EngineSessionState", flags);
+        MethodInfo? getEngineSessionState = ExecutionContextType
+            ?.GetProperty("EngineSessionState", flags)
+            ?.GetGetMethod(nonPublic: true);
         if (getEngineSessionState is null) return null;
 
-        PropertyInfo? currentScope = getEngineSessionState.GetReturnType()?.GetProperty("CurrentScope", flags);
+        MethodInfo? currentScope = getEngineSessionState?.ReturnType
+            ?.GetProperty("CurrentScope", flags)
+            ?.GetGetMethod(nonPublic: true);
         if (currentScope is null) return null;
 
-        PropertyInfo? typeRes = currentScope.GetReturnType()?.GetProperty("TypeResolutionState", flags);
+        MethodInfo? typeRes = currentScope?.ReturnType
+            ?.GetProperty("TypeResolutionState", flags)
+            ?.GetGetMethod(nonPublic: true);
         if (typeRes is null) return null;
 
         FieldInfo? namespaces = typeRes.GetReturnType()?.GetField("namespaces", flags);
@@ -56,9 +62,9 @@ internal static class ReflectionCache
                     Expression.Call(
                         Expression.Call(
                             Expression.Call(GetExecutionContextFromTLSMethod),
-                            getEngineSessionState.GetGetMethod(nonPublic: true)),
-                        currentScope.GetGetMethod(nonPublic: true)),
-                    typeRes.GetGetMethod(nonPublic: true)),
+                            getEngineSessionState!),
+                        currentScope!),
+                    typeRes),
                 namespaces),
             "GetUsingNamespacesDynamically",
             [])

@@ -18,7 +18,7 @@ internal sealed class FullMethodSignature(ITypeSignature returnType, ImmutableAr
 
         if (subject is ConstructorInfo ctor)
         {
-            if (!ReturnType.IsMatch(ctor.ReflectedType))
+            if (ctor.ReflectedType is null || !ReturnType.IsMatch(ctor.ReflectedType))
             {
                 return false;
             }

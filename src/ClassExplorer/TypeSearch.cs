@@ -142,7 +142,7 @@ internal sealed class TypeSearch<TCallback> : ReflectionSearch<Type, TCallback, 
             {
                 filters.AddFilter(
                     StringMatcher.CreateRegex(_options.FullName),
-                    static (type, matcher) => matcher.IsMatch(type.FullName));
+                    static (type, matcher) => matcher.IsMatch(type.FullName ?? ""));
             }
             else
             {
