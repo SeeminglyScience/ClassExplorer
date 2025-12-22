@@ -7,6 +7,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ResXGenerator_NullForgivingOperators>true</ResXGenerator_NullForgivingOperators>
+    <!-- Some AssemblyName properties are depreciated, we don't actually depend on them though. -->
+    <NoWarn>$(NoWarn);SYSLIB0037</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

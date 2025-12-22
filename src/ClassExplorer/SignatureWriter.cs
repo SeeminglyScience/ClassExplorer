@@ -1815,6 +1815,9 @@ internal class SignatureWriter
             Modifiers(modifiersMethod);
         }
 
+        Poly.Assert(name is not null);
+        Poly.Assert(propertyParameter is not null);
+
         TypeInfo(propertyParameter).Space();
         if (isExplicitImplementation)
         {
@@ -1885,6 +1888,7 @@ internal class SignatureWriter
             eventParameter = removeMethod!.GetParameters().FirstOrDefault();
         }
 
+        Poly.Assert(eventParameter is not null);
         Modifiers(modifiersMethod).Keyword("event").Space().TypeInfo(eventParameter).Space();
         MemberName(eventInfo.Name).Space();
         OpenCurly().Space();
