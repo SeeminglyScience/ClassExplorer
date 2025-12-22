@@ -12,7 +12,7 @@
 RootModule = 'ClassExplorer.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.3.3'
+ModuleVersion = '2.4.0'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Desktop', 'Core'
@@ -77,68 +77,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = @'
-## 2.3.3
-
-* Add `-Decoration` to `Find-Type`
-* Fix `-Decoration` parameter and `hasattr` keyword being unreliable with non-BCL
-  attributes.
-
-## 2.3.2
-
-* Add property attributes in `Format-MemberSignature`
-* Add argument completion for `-Decoration`
-* Fix type for `ResolutionMap` in help
-
-## 2.3.1
-
-* Fix `number` signature keyword not resolving
-* Add help for `hasdefault` keyword
-
-## 2.3.0
-
-* Add `-Extension` parameter to `Find-Member`. This will find only extension methods
-* Add `index` signature keyword for restricting matches to a specific method parameter
-  index. (e.g. `[allof[index0, string]]` will match if the first parameter is a `string`.
-
-## 2.2.0
-
-### Add `-RecurseNestedType` parameter
-
-A lot of queries were a little harder with automatically recursing nested types.
-So you could do something like:
-
-```powershell
-Find-Type -Not -Base delegate | Find-Member -Not -Virtual | Find-Member Invoke
-```
-
-And end up with a bunch of members from nested delegates. This also lets you
-filter nested types easier. Basically we are just actually treating nested types
-like other members unless you specifically request otherwise.
-
-### Other
-
-* Filter sealed and abstract methods from virtual
-* Fix filters applying incorrectly with `-Not` or when piped
-* Add some extra parameter aliases
-
-## 2.1.0
-
-- Add signature keywords `abstract` and `concrete`
-- Find-Type no longer includes non-public classes when `-Not` is specified
-- Members from `System.Object` are now properly excluded from structs and enums when `-IncludeObject` is not specified
-- `params` now shows in member format
-- Member formatting is now grouped by full type name of reflected type.
-- New slot virtual members now display properly when they are also sealed
-
-## 2.0.1
-- Fix error messages and help
-
-## 2.0.0
-- Added type signatures, a custom query language built into type expressions. See https://seemingly.dev/about-type-signatures
-- A lot of fixes and tweaks
-- Removed Find-Namespace command
-'@
+        ReleaseNotes = 'See https://github.com/SeeminglyScience/ClassExplorer/blob/master/CHANGELOG.md'
 
     } # End of PSData hashtable
 
