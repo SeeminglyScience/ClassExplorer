@@ -47,6 +47,11 @@ namespace ClassExplorer.Signatures
             return member.IsDefined(type, true);
         }
 
+        public static bool IsDecoratedReadOnly(this ParameterInfo parameter)
+        {
+            return parameter.IsDefined("System.Runtime.CompilerServices.IsReadOnlyAttribute");
+        }
+
         public static bool IsDefined(this ParameterInfo parameter, string fullName)
         {
             Type? type = parameter.Member.Module.GetType(fullName) ?? Type.GetType(fullName);

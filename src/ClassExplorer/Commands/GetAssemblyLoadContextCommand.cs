@@ -7,6 +7,7 @@ namespace ClassExplorer.Commands;
 
 [Cmdlet(VerbsCommon.Get, "AssemblyLoadContext")]
 [Alias("galc")]
+[OutputType(typeof(AssemblyLoadContext))]
 public sealed class GetAssemblyLoadContextCommand : PSCmdlet
 {
     [Parameter(Position = 0)]
@@ -49,7 +50,12 @@ public sealed class GetAssemblyLoadContextCommand : PSCmdlet
             return;
         }
 
-        AssemblyLoadContext alc = ALC.GetLoadContext(assembly);
+        AssemblyLoadContext? alc = ALC.GetLoadContext(assembly);
+        if (alc is null)
+        {
+            return;
+        }
+
         if (!(_processedAlcs ??= new()).Add(alc))
         {
             return;

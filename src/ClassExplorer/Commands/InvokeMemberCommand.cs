@@ -6,7 +6,7 @@ using System.Management.Automation.Internal;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ClassExplorer.Internal;
-
+using ClassExplorer.Signatures;
 using PSAllowNull = System.Management.Automation.AllowNullAttribute;
 
 namespace ClassExplorer.Commands;
@@ -32,6 +32,19 @@ public sealed class InvokeMemberCommand : PSCmdlet
 
     [Parameter]
     public SwitchParameter SkipPSObjectUnwrap { get; set; }
+
+    protected override void BeginProcessing()
+    {
+        if (SessionState.LanguageMode is not PSLanguageMode.FullLanguage)
+        {
+            ThrowTerminatingError(
+                new ErrorRecord(
+                    new PSInvalidOperationException(SR.InvalidLanguageMode),
+                    nameof(SR.InvalidLanguageMode),
+                    ErrorCategory.InvalidOperation,
+                    targetObject: null));
+        }
+    }
 
     protected override unsafe void ProcessRecord()
     {
@@ -81,8 +94,6 @@ public sealed class InvokeMemberCommand : PSCmdlet
                 return;
             }
         }
-
-
 
         if (InputObject is not MethodBase methodBase)
         {
@@ -166,11 +177,17 @@ public sealed class InvokeMemberCommand : PSCmdlet
             return;
         }
 
+        // Go through refs and remove any that link to a `PSReference` or are for a `in` parameter.
         for (int i = refs.Count - 1; i >= 0; i--)
         {
             RefInfo info = refs[i];
             if (info.PSRef is null)
             {
+                if (info.Parameter?.IsDecoratedReadOnly() ?? false)
+                {
+                    refs.RemoveAt(i);
+                }
+
                 continue;
             }
 

@@ -80,7 +80,7 @@ namespace ClassExplorer
             {
             }
 
-            return name ?? alc.GetType().FullName;
+            return name ?? alc.GetType().FullName ?? "<Unnamed>";
         }
 
         public static void AssertSupported(PSCmdlet cmdlet)
@@ -104,7 +104,7 @@ namespace ClassExplorer
 #endif
         }
 
-        public static AssemblyLoadContext GetLoadContext(Assembly assembly)
+        public static AssemblyLoadContext? GetLoadContext(Assembly assembly)
         {
 #if NETFRAMEWORK
             return AssemblyLoadContext.Default;

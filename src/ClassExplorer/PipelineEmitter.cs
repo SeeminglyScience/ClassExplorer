@@ -51,22 +51,25 @@ internal readonly struct PipelineEmitter<T> : IEnumerationCallback<T>
 
     public PipelineEmitter(PSCmdlet cmdlet) => _cmdlet = cmdlet;
 
+    private static PSObject AsPSObject(object obj, bool storeTypeNameAndInstanceMembersLocally)
+    {
+        if (s_asPSObject is null)
+        {
+            return PSObject.AsPSObject(obj);
+        }
+
+        return s_asPSObject(obj, storeTypeNameAndInstanceMembersLocally);
+    }
+
     public void Invoke(T value) => _cmdlet.WriteObject(value, enumerateCollection: false);
 
     public void Invoke(T value, object? instance)
     {
-        PSObject pso;
-        if (s_asPSObject is null || s_setHidden is null)
-        {
-            pso = PSObject.AsPSObject(value);
-            pso.Properties.Add(new PSNoteProperty("__ce_Instance", instance));
-            _cmdlet.WriteObject(pso, enumerateCollection: false);
-            return;
-        }
-
-        pso = s_asPSObject(value, true);
+        // Avoid saving to the PSObject member resurrection table if possible as
+        // .NET caches `MemberInfo` objects.
+        PSObject pso = AsPSObject(value!, storeTypeNameAndInstanceMembersLocally: true);
         PSNoteProperty instanceProp = new("__ce_Instance", instance);
-        s_setHidden(instanceProp);
+        s_setHidden?.Invoke(instanceProp);
         pso.Properties.Add(instanceProp);
         _cmdlet.WriteObject(pso, enumerateCollection: false);
     }

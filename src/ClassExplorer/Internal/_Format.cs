@@ -62,6 +62,19 @@ public static class _Format
     }
 
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
+    public static string FullType(string value, int maxLength = -1)
+    {
+        SignatureWriter w = GetWriter(maxLength);
+        int lastPeriod = value.LastIndexOf('.');
+        if (lastPeriod is -1 || lastPeriod == value.Length - 1)
+        {
+            return w.TypeInfo(value).ToString();
+        }
+
+        return w.Namespace(value[..lastPeriod]).Dot().TypeInfo(value[(lastPeriod + 1)..]).ToString();
+    }
+
+    [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
     public static string Namespace(string value, int maxLength = -1)
     {
         return GetWriter(maxLength).Namespace(value).ToString();

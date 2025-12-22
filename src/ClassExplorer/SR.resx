@@ -191,4 +191,7 @@ Message: {0}</value>
   <data name="UnexpectedSignatureKind" xml:space="preserve">
     <value>Expected signature of kind "{0}" but found a "{1}" signature.</value>
   </data>
+  <data name="InvalidLanguageMode" xml:space="preserve">
+    <value>The 'Invoke-Member' command cannot be used outside of 'PSLanguageMode.FullLanguage'.</value>
+  </data>
 </root>
