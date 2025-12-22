@@ -538,5 +538,68 @@ return ''
                 </ListEntries>
             </ListControl>
         </View>
+        <View>
+            <Name>System.Runtime.Loader.AssemblyLoadContext</Name>
+            <ViewSelectedBy>
+                <TypeName>System.Runtime.Loader.AssemblyLoadContext</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Definition</Label>
+                        <Width>15</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>ImplementingType</Label>
+                        <Width>45</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Assemblies</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    if ($_.Name) {
+                                        return [ClassExplorer.Internal._Format]::MemberName($_.Name)
+                                    }
+
+                                    return [ClassExplorer.Internal._Format]::MemberName('&lt;Unnamed&gt;')
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    [ClassExplorer.Internal._Format]::FullType($_.GetType())
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    $assemblies = @($_.Assemblies)
+                                    if ($assemblies.Length -eq 0) {
+                                        return '{0} assemblies' -f [ClassExplorer.Internal._Format]::Number(0)
+                                    }
+
+                                    if ($assemblies.Length -eq 1) {
+                                        return '{0} assembly ({1})' -f (
+                                            [ClassExplorer.Internal._Format]::Number(1),
+                                            [ClassExplorer.Internal._Format]::FullType($assemblies[0].GetName().Name))
+                                    }
+
+                                    $names = foreach ($assembly in $assemblies) {
+                                        [ClassExplorer.Internal._Format]::FullType($assembly.GetName().Name)
+                                    }
+
+                                    return '{0} assemblies ({1})' -f (
+                                        [ClassExplorer.Internal._Format]::Number($assemblies.Length),
+                                        ($names -join ', '))
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
     </ViewDefinitions>
 </Configuration>
