@@ -9,6 +9,28 @@ namespace ClassExplorer
 {
     internal static class Poly
     {
+        public static bool AreFunctionPointersSupported =>
+#if !NETCOREAPP
+            false;
+#else
+            true;
+#endif
+
+        extension(Type type)
+        {
+#if !NETCOREAPP
+            public bool IsFunctionPointer => false;
+
+            public bool IsUnmanagedFunctionPointer => false;
+
+            public Type[] GetFunctionPointerParameterTypes() => null!;
+
+            public Type[] GetFunctionPointerCallingConventions() => null!;
+
+            public Type GetFunctionPointerReturnType() => null!;
+#endif
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryParseInt32(ReadOnlySpan<char> s, out int result)
         {

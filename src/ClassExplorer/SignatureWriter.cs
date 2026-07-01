@@ -723,7 +723,7 @@ internal class SignatureWriter
             Keyword("params").Space();
         }
 
-        Type parameterType = parameter.ParameterType;
+        Type parameterType = parameter.GetSafeModifiedType();
         if (parameterType.IsByRef)
         {
             parameterType = parameterType.GetElementType()!;
@@ -756,24 +756,24 @@ internal class SignatureWriter
     {
         return type switch
         {
-            _ when type == typeof(void) => "void",
-            _ when type == typeof(string) => "string",
-            _ when type == typeof(char) => "char",
-            _ when type == typeof(int) => "int",
-            _ when type == typeof(uint) => "uint",
-            _ when type == typeof(short) => "short",
-            _ when type == typeof(ushort) => "ushort",
-            _ when type == typeof(long) => "long",
-            _ when type == typeof(ulong) => "ulong",
-            _ when type == typeof(sbyte) => "sbyte",
-            _ when type == typeof(byte) => "byte",
-            _ when type == typeof(double) => "double",
-            _ when type == typeof(float) => "float",
-            _ when type == typeof(nint) => "nint",
-            _ when type == typeof(nuint) => "nuint",
-            _ when type == typeof(object) => "object",
-            _ when type == typeof(bool) => "bool",
-            _ when type == typeof(decimal) => "decimal",
+            _ when type.Equals(typeof(void)) => "void",
+            _ when type.Equals(typeof(string)) => "string",
+            _ when type.Equals(typeof(char)) => "char",
+            _ when type.Equals(typeof(int)) => "int",
+            _ when type.Equals(typeof(uint)) => "uint",
+            _ when type.Equals(typeof(short)) => "short",
+            _ when type.Equals(typeof(ushort)) => "ushort",
+            _ when type.Equals(typeof(long)) => "long",
+            _ when type.Equals(typeof(ulong)) => "ulong",
+            _ when type.Equals(typeof(sbyte)) => "sbyte",
+            _ when type.Equals(typeof(byte)) => "byte",
+            _ when type.Equals(typeof(double)) => "double",
+            _ when type.Equals(typeof(float)) => "float",
+            _ when type.Equals(typeof(nint)) => "nint",
+            _ when type.Equals(typeof(nuint)) => "nuint",
+            _ when type.Equals(typeof(object)) => "object",
+            _ when type.Equals(typeof(bool)) => "bool",
+            _ when type.Equals(typeof(decimal)) => "decimal",
             _ => null,
         };
     }
@@ -1273,7 +1273,7 @@ internal class SignatureWriter
             Keyword("readonly").Space();
         }
 
-        TypeInfo(field.FieldType).Space().MemberName(field.Name);
+        TypeInfo(field.GetSafeModifiedType()).Space().MemberName(field.Name);
         if (isConst)
         {
             Type constType = field.FieldType;
@@ -1938,6 +1938,44 @@ internal class SignatureWriter
         return Escape(_colors.Reset);
     }
 
+    private SignatureWriter FunctionPointer(Type type, TypeNameSettings settings)
+    {
+        Keyword("delegate").Append("* ");
+        if (type.IsUnmanagedFunctionPointer)
+        {
+            Keyword("unmanaged");
+            Type[] callConvs = type.GetFunctionPointerCallingConventions();
+            if (callConvs is not [])
+            {
+                Append('[');
+                TypeInfo(callConvs[0].Name.Replace("CallConv", string.Empty));
+                for (int i = 1; i < callConvs.Length; i++)
+                {
+                    Append(", ");
+                    TypeInfo(callConvs[i].Name.Replace("CallConv", string.Empty));
+                }
+
+                Append(']');
+            }
+        }
+
+        Append('<');
+        Type[] parameterTypes = type.GetFunctionPointerParameterTypes();
+        if (parameterTypes is not [])
+        {
+            TypeInfoImpl(parameterTypes[0], settings);
+            for (int i = 1; i < parameterTypes.Length; i++)
+            {
+                Append(", ").TypeInfoImpl(parameterTypes[i], settings);
+            }
+
+            Append(", ");
+        }
+
+        return TypeInfoImpl(type.GetFunctionPointerReturnType(), settings)
+            .Append('>');
+    }
+
     private SignatureWriter TypeInfoImpl(Type type, TypeNameSettings settings)
     {
         if (settings.IsForDefinition && type.IsGenericParameter && !Simple)
@@ -1946,6 +1984,11 @@ internal class SignatureWriter
             {
                 Attribute(attribute).Space();
             }
+        }
+
+        if (type.IsFunctionPointer)
+        {
+            return FunctionPointer(type, settings);
         }
 
         if (type.UnwrapConstruction() == typeof(Nullable<>))

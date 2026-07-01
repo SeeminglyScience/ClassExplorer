@@ -40,5 +40,13 @@ namespace ClassExplorer.Signatures
         public const string number = "number";
         public const string hasdefault = "hasdefault";
         public const string sig = "sig";
+        public const string callconv = "callconv";
+        public const string cdecl = "cdecl";
+        public const string stdcall = "stdcall";
+        public const string fastcall = "fastcall";
+        public const string memberfunction = "memberfunction";
+        public const string suppressgctransition = "suppressgctransition";
+        public const string swift = "swift";
+        public const string thiscall = "thiscall";
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -52,16 +53,35 @@ namespace ClassExplorer.Signatures
             return parameter.IsDefined("System.Runtime.CompilerServices.IsReadOnlyAttribute");
         }
 
+        private static readonly ConcurrentDictionary<string, Type?> s_typeCache = new();
+
         public static bool IsDefined(this ParameterInfo parameter, string fullName)
         {
-            Type? type = parameter.Member.Module.GetType(fullName) ?? Type.GetType(fullName);
-
+            Type? type = parameter.Member.Module.GetType(fullName) ?? GetTypeWithCache(fullName);
             if (type is null)
             {
                 return false;
             }
 
             return parameter.IsDefined(type, true);
+        }
+
+        public static Attribute? GetAttributeByName(this MemberInfo member, string fullName)
+        {
+            Type? type = member.Module.GetType(fullName) ?? GetTypeWithCache(fullName);
+            if (type is null)
+            {
+                return null;
+            }
+
+            return member.GetCustomAttribute(type);
+        }
+
+        private static Type? GetTypeWithCache(string fullName)
+        {
+            return s_typeCache.GetOrAdd(
+                fullName,
+                static (fullName) => Type.GetType(fullName));
         }
 
         public static Visibility ToVisibility(this MethodAttributes attributes)

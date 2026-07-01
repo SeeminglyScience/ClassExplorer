@@ -194,4 +194,7 @@ Message: {0}</value>
   <data name="InvalidLanguageMode" xml:space="preserve">
     <value>The 'Invoke-Member' command cannot be used outside of 'PSLanguageMode.FullLanguage'.</value>
   </data>
+  <data name="BadCallConv" xml:space="preserve">
+    <value>Could not resolve the calling convention "{0}". Calling convention must be a resolvable type prefixed with "System.Runtime.CompilerServices.CallConv" or be one of the following: cdecl, fastcall, stdcall, suppressgctransition, thiscall, or memberfunction.</value>
+  </data>
 </root>

@@ -271,6 +271,7 @@ namespace ClassExplorer.Signatures
                     Keywords.decoration or Keywords.hasattr => Consume(Decoration(args, typeName), out argsConsumed),
                     Keywords.pointer => Consume(ParsePointer(args, typeName), out argsConsumed),
                     Keywords.sig => Consume(ParseFullMethodSignature(args, typeName), out argsConsumed),
+                    Keywords.callconv => Consume(ParseCallConv(args, typeName), out argsConsumed),
                     _ => Default(typeName, args),
                 },
                 expected,
@@ -393,6 +394,43 @@ namespace ClassExplorer.Signatures
             }
 
             return new GenericTypeSignature(definition, argSignatures.MoveToImmutable());
+        }
+
+        [SkipLocalsInit]
+        private ISignature ParseCallConv(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)
+        {
+            Span<char> lowerCaseName = stackalloc char[0x200];
+            Type[] resolvedArgs = new Type[args.Count];
+            for (int i = 0; i < resolvedArgs.Length; i++)
+            {
+                ITypeName arg = args[i];
+                arg.FullName.AsSpan().ToLowerInvariant(lowerCaseName);
+                Type? type = lowerCaseName[0..arg.FullName.Length] switch
+                {
+                    Keywords.stdcall => typeof(CallConvStdcall),
+                    Keywords.cdecl => typeof(CallConvCdecl),
+                    Keywords.fastcall => typeof(CallConvFastcall),
+                    Keywords.memberfunction => typeof(CallConvMemberFunction),
+                    Keywords.suppressgctransition => typeof(CallConvSuppressGCTransition),
+                    Keywords.swift => typeof(CallConvCdecl).Assembly.GetType("System.Runtime.CompilerServices.CallConvSwift"),
+                    Keywords.thiscall => typeof(CallConvThiscall),
+                    Span<char> name when name.IndexOf("callconv") is not -1 => ResolveReflectionType(arg),
+                    Span<char> name when name.IndexOf('.') is -1 => Search.FirstType(new() { FullName = $"system.runtime.compilerservices.callconv{name}" }),
+                    _ => null,
+                };
+
+                if (type is null)
+                {
+                    return ThrowSignatureParseException(
+                        arg.Extent,
+                        SR.Format(SR.BadCallConv, arg.FullName));
+                }
+
+                resolvedArgs[i] = type;
+            }
+
+            // finish this
+            return null!;
         }
 
         private ISignature ParsePointer(ReadOnlyCollection<ITypeName> args, ITypeName errorPosition)

@@ -7,6 +7,18 @@ namespace ClassExplorer;
 
 internal static class TypeExtensions
 {
+    extension(ParameterInfo parameter)
+    {
+        public Type GetSafeModifiedType()
+        {
+#if !NETCOREAPP
+            return parameter.ParameterType;
+#else
+            return SafeModifiedType.ToSafeModified(parameter.GetModifiedParameterType());
+#endif
+        }
+    }
+
     extension(MemberInfo member)
     {
         public bool IsVirtualOrAbstract()
@@ -79,6 +91,15 @@ internal static class TypeExtensions
 
     extension(PropertyInfo property)
     {
+        public Type GetSafeModifiedType()
+        {
+#if !NETCOREAPP
+            return property.PropertyType;
+#else
+            return SafeModifiedType.ToSafeModified(property.GetModifiedPropertyType());
+#endif
+        }
+
         public bool DoesMatchView(AccessView view)
         {
             MethodInfo? method = property.GetFirstMethod();
@@ -129,6 +150,15 @@ internal static class TypeExtensions
 
     extension(FieldInfo field)
     {
+        public Type GetSafeModifiedType()
+        {
+#if !NETCOREAPP
+            return field.FieldType;
+#else
+            return SafeModifiedType.ToSafeModified(field.GetModifiedFieldType());
+#endif
+        }
+
         public bool DoesMatchView(AccessView view)
         {
             return field switch
